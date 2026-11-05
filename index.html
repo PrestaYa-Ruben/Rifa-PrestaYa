@@ -10,7 +10,7 @@
 <link rel="manifest" href="manifest.json">
 <link rel="icon" href="icons/icon-192.png">
 <link rel="apple-touch-icon" href="icons/icon-192.png">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
 :root{
   --navy:#0b1f4b; --navy2:#13306d; --navy3:#1c3f8a;
@@ -121,6 +121,12 @@ h3{font-size:15px;font-weight:700}
 .field label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
 .field input,.field select,.field textarea{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:#fafbfe;color:var(--text)}
 .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--green);background:#fff}
+.detect{background:#f1f5fd;border:1.5px dashed #b9c7e3;border-radius:14px;padding:12px;margin-bottom:14px}
+.detect label{display:block;font-size:12px;font-weight:700;color:var(--navy3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
+.detect textarea{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:#fff;color:var(--text);resize:vertical;font-size:15px}
+.detect textarea:focus{outline:none;border-color:var(--navy3)}
+.field input.filled{animation:filled 1.2s}
+@keyframes filled{0%,40%{background:#e2f7ec;border-color:var(--green)}}
 .seg{display:flex;gap:8px}
 .seg button{flex:1;padding:12px 6px;border-radius:12px;background:#f1f4fa;border:2px solid transparent;font-weight:800;color:var(--navy);font-size:14px}
 .seg button small{display:block;font-weight:500;font-size:10px;color:var(--muted)}
@@ -206,7 +212,7 @@ h3{font-size:15px;font-weight:700}
 /* =========================================================
    RIFAS PRESTAYA  ·  v1.0
    ========================================================= */
-const VERSION = 'v1.4';
+const VERSION = 'v1.6';
 const DEFAULT_WA = '573162685282';
 const KEY = 'rifasPY_data_v1';
 const KEY_CFG = 'rifasPY_cfg_v1';
@@ -557,8 +563,16 @@ function modalNumero(k){
     <div class="muted" style="text-align:center">${esc(r.nombre)}</div>
     <div class="big-num" style="margin:6px 0 4px">${k}</div>
     <div style="text-align:center;margin-bottom:14px"><span class="pill ${libre ? 'd' : v.e}">${libre ? 'Disponible' : v.e === 'p' ? 'Pagado' : 'Apartado'}</span></div>
-    <div class="field"><label>Nombre del cliente</label><input id="nNom" maxlength="50" value="${esc(v.n)}" placeholder="Nombre completo"></div>
-    <div class="field"><label>Teléfono / WhatsApp</label><input id="nTel" inputmode="tel" maxlength="15" value="${esc(v.t)}" placeholder="3001234567"></div>
+    <div class="detect">
+      <label for="nPaste">📋 Pegar datos del cliente</label>
+      <textarea id="nPaste" rows="3" placeholder="Pega aquí el mensaje o los datos del cliente (nombre y teléfono)"></textarea>
+      <div class="row" style="margin-top:8px">
+        <button type="button" class="btn ghost sm" onclick="pegarEn('#nPaste')">📋 Pegar</button>
+        <button type="button" class="btn navy sm" onclick="detectarEnForm()">🔍 Detectar</button>
+      </div>
+    </div>
+    <div class="field"><label for="nNom">Nombre del cliente</label><input id="nNom" maxlength="50" value="${esc(v.n)}" placeholder="Nombre completo"></div>
+    <div class="field"><label for="nTel">Teléfono / WhatsApp</label><input id="nTel" inputmode="tel" maxlength="15" value="${esc(v.t)}" placeholder="3001234567"></div>
     <div class="field"><label>Estado</label>
       <div class="seg" id="nEst">
         <button type="button" data-e="r" class="${v.e === 'r' ? 'on' : ''}">🟠 Apartado<small>Sin pagar</small></button>
@@ -575,6 +589,47 @@ function modalNumero(k){
   `);
   document.querySelectorAll('#nEst button').forEach(b => b.onclick = () => { document.querySelectorAll('#nEst button').forEach(x => x.classList.remove('on')); b.classList.add('on'); });
 }
+/* ---------- Detectar nombre y teléfono en un texto pegado ---------- */
+function detectarDatos(txt){
+  const t = String(txt || '').replace(/\r/g, '').replace(/\*/g, '');
+  // Teléfono: primero celular colombiano (3xx xxx xxxx, con o sin +57), luego cualquier número de 7 a 12 dígitos
+  let tel = '';
+  const cel = t.match(/(?:\+?\s*57[\s.-]*)?(3\d{2})[\s.-]*(\d{3})[\s.-]*(\d{4})(?!\d)/);
+  if (cel) tel = cel[1] + cel[2] + cel[3];
+  else { const any = t.match(/(?:\+?\d[\d\s.-]{6,16}\d)/); if (any){ const d = any[0].replace(/\D/g, ''); if (d.length >= 7 && d.length <= 12) tel = d.replace(/^57(?=3\d{9}$)/, ''); } }
+  // Nombre: línea con etiqueta "Nombre/Cliente", o la primera línea que tenga solo letras
+  let nom = '';
+  const lab = t.match(/(?:nombre(?:\s+completo)?|cliente|name)\s*[:=\-]\s*([^\n]+)/i);
+  if (lab) nom = lab[1].split(/[,;|]|\s(?:tel[ée]?f?o?n?o?|cel(?:ular)?|whats(?:app)?|n[úu]mero|cc|c[ée]dula)\b/i)[0];
+  else {
+    const omitir = /^(rifa|n[úu]mero|tel[ée]fono|cel(ular)?|whatsapp|valor|premio|fecha|nueva reserva|hola|buen[oa]s|c[ée]dula|cc|direcci[óo]n|correo|email)\b/i;
+    const lineas = t.split('\n').map(l => l.trim()).filter(Boolean);
+    for (const l of lineas){
+      if (omitir.test(l.replace(/^[^\wÀ-ÿ]+/, ''))) continue;
+      const limpio = l.replace(/(?:\+?\s*57[\s.-]*)?3\d{2}[\s.-]*\d{3}[\s.-]*\d{4}/g, '').replace(/[^A-Za-zÀ-ÿñÑ\s]/g, ' ').replace(/\s+/g, ' ').trim();
+      if (limpio.split(' ').filter(w => w.length > 1).length >= 1 && limpio.length >= 3){ nom = limpio; break; }
+    }
+  }
+  nom = nom.replace(/[^A-Za-zÀ-ÿñÑ\s'.]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 50)
+    .toLowerCase().replace(/(^|\s)([a-zà-ÿñ])/g, (m, a, b) => a + b.toUpperCase());
+  return { n: nom, t: tel };
+}
+async function pegarEn(sel){
+  try{ const t = await navigator.clipboard.readText(); if (t){ $(sel).value = t; return; } }catch(e){}
+  $(sel).focus(); toast('Mantén presionado el recuadro y elige "Pegar"');
+}
+function detectarEnForm(){
+  const txt = $('#nPaste').value;
+  if (!txt.trim()) return toast('Primero pega los datos del cliente');
+  const d = detectarDatos(txt);
+  if (d.n){ $('#nNom').value = d.n; flashField('#nNom'); }
+  if (d.t){ $('#nTel').value = d.t; flashField('#nTel'); }
+  if (d.n && d.t) toast('✅ Nombre y teléfono detectados');
+  else if (d.n) toast('Se detectó el nombre. Escribe el teléfono.');
+  else if (d.t) toast('Se detectó el teléfono. Escribe el nombre.');
+  else toast('No se encontraron datos. Revisa el texto pegado.');
+}
+function flashField(sel){ const el = $(sel); el.classList.remove('filled'); void el.offsetWidth; el.classList.add('filled'); }
 function guardarNumero(k, verBoleta){
   const r = getRifa(UI.rifaId);
   const n = $('#nNom').value.trim(), t = $('#nTel').value.trim();
@@ -739,62 +794,65 @@ function wrapText(ctx, text, x, y, maxW, lh, maxLines = 2){
   lines.forEach((l, i) => ctx.fillText(l, x, y + i * lh)); return lines.length * lh;
 }
 async function dibujarBoleta(r, k){
-  await document.fonts.ready.catch(() => {});
+  try{ await Promise.all(['500', '600', '700', '800'].map(w => document.fonts.load(`${w} 40px Inter`))); }catch(e){}
   const v = r.nums[k]; const W = 1080, H = 1500;
   const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
-  const F = (w, s) => `${w} ${s}px Poppins, Arial, sans-serif`;
+  const F = (w, s) => `${w} ${s}px Inter, "Helvetica Neue", Arial, sans-serif`;
+  const sp = (px) => { try{ x.letterSpacing = px + 'px'; }catch(e){} };
   // fondo
-  const g = x.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#0b1f4b'); g.addColorStop(1, '#1c3f8a'); x.fillStyle = g; x.fillRect(0, 0, W, H);
-  x.fillStyle = 'rgba(31,191,106,.18)'; x.beginPath(); x.arc(W - 40, 60, 260, 0, 7); x.fill();
-  x.fillStyle = 'rgba(255,200,61,.12)'; x.beginPath(); x.arc(60, H - 80, 220, 0, 7); x.fill();
+  x.fillStyle = '#0b1f4b'; x.fillRect(0, 0, W, H);
+  x.fillStyle = 'rgba(31,191,106,.14)'; x.beginPath(); x.arc(W - 20, 40, 240, 0, 7); x.fill();
+  x.fillStyle = 'rgba(255,200,61,.10)'; x.beginPath(); x.arc(40, H - 60, 200, 0, 7); x.fill();
   // marca
-  x.textAlign = 'center'; x.fillStyle = '#fff'; x.font = F(900, 92);
+  x.textBaseline = 'alphabetic'; x.font = F(800, 88); sp(0);
   const wP = x.measureText('Presta').width, wY = x.measureText('Ya').width, sx = W / 2 - (wP + wY) / 2;
-  x.textAlign = 'left'; x.fillText('Presta', sx, 150); x.fillStyle = '#1fbf6a'; x.fillText('Ya', sx + wP, 150);
-  x.textAlign = 'center'; x.fillStyle = '#ffc83d'; x.font = F(800, 36); x.fillText('B O L E T A   O F I C I A L', W / 2, 210);
+  x.textAlign = 'left'; x.fillStyle = '#ffffff'; x.fillText('Presta', sx, 145); x.fillStyle = '#1fbf6a'; x.fillText('Ya', sx + wP, 145);
+  x.textAlign = 'center'; x.fillStyle = '#ffc83d'; x.font = F(700, 30); sp(6); x.fillText('BOLETA OFICIAL', W / 2, 205); sp(0);
   // tarjeta blanca
-  const cx = 70, cy = 260, cw = W - 140, ch = 1120;
-  x.fillStyle = '#fff'; roundRect(x, cx, cy, cw, ch, 44); x.fill();
-  // muescas
-  x.fillStyle = '#132f6a'; [cy + 560].forEach(yy => { x.beginPath(); x.arc(cx, yy, 34, 0, 7); x.fill(); x.beginPath(); x.arc(cx + cw, yy, 34, 0, 7); x.fill(); });
-  x.setLineDash([16, 14]); x.strokeStyle = '#d5dcea'; x.lineWidth = 4; x.beginPath(); x.moveTo(cx + 50, cy + 560); x.lineTo(cx + cw - 50, cy + 560); x.stroke(); x.setLineDash([]);
-  // nombre rifa
-  x.fillStyle = '#13203d'; x.font = F(800, 50); wrapText(x, r.nombre, W / 2, cy + 90, cw - 100, 60);
-  x.fillStyle = '#6b7794'; x.font = F(600, 30); x.fillText('TU NÚMERO', W / 2, cy + 220);
+  const cx = 70, cy = 255, cw = W - 140, ch = 1120, cut = cy + 570;
+  x.fillStyle = '#ffffff'; roundRect(x, cx, cy, cw, ch, 40); x.fill();
+  x.fillStyle = '#0b1f4b'; x.beginPath(); x.arc(cx, cut, 32, 0, 7); x.fill(); x.beginPath(); x.arc(cx + cw, cut, 32, 0, 7); x.fill();
+  x.setLineDash([14, 12]); x.strokeStyle = '#d3dae6'; x.lineWidth = 3; x.beginPath(); x.moveTo(cx + 52, cut); x.lineTo(cx + cw - 52, cut); x.stroke(); x.setLineDash([]);
+  // nombre de la rifa
+  x.fillStyle = '#101a33'; x.font = F(700, 48); wrapText(x, r.nombre, W / 2, cy + 95, cw - 110, 58);
+  x.fillStyle = '#5b667f'; x.font = F(600, 26); sp(4); x.fillText('TU NÚMERO', W / 2, cy + 225); sp(0);
   // número
-  x.fillStyle = '#1fbf6a'; const nw = Math.max(380, 130 * r.cifras + 120); roundRect(x, W / 2 - nw / 2, cy + 245, nw, 230, 36); x.fill();
-  x.fillStyle = '#fff'; x.font = F(900, 190); x.fillText(k, W / 2, cy + 430);
+  const nw = Math.max(400, 130 * r.cifras + 140);
+  x.fillStyle = '#1fbf6a'; roundRect(x, W / 2 - nw / 2, cy + 250, nw, 220, 32); x.fill();
+  x.fillStyle = '#ffffff'; x.font = F(800, 168); sp(6); x.fillText(k, W / 2, cy + 422); sp(0);
   // estado
   const pagado = v.e === 'p';
-  x.fillStyle = pagado ? '#e2f7ec' : '#fff4e0'; roundRect(x, W / 2 - 150, cy + 495, 300, 50, 25); x.fill();
-  x.fillStyle = pagado ? '#16a159' : '#b86a00'; x.font = F(800, 28); x.fillText(pagado ? '✔ PAGADO' : '● APARTADO', W / 2, cy + 530);
+  x.fillStyle = pagado ? '#e3f6ec' : '#fff3df'; roundRect(x, W / 2 - 140, cy + 495, 280, 52, 26); x.fill();
+  x.fillStyle = pagado ? '#11804a' : '#9a5a00'; x.font = F(700, 26); sp(2); x.fillText(pagado ? 'PAGADO' : 'APARTADO', W / 2, cy + 530); sp(0);
   // datos
-  const rows = [['Cliente', v.n], ['Teléfono', v.t], ['Premio', r.premio || '-'], ['Valor boleta', money(r.precio)], ['Juega con', r.loteria || 'Por definir'], ['Fecha sorteo', fmtFechaCorta(r.fecha)]];
-  x.textAlign = 'left'; let yy = cy + 640;
-  rows.forEach(([l, val]) => {
-    x.fillStyle = '#6b7794'; x.font = F(600, 28); x.fillText(l, cx + 60, yy);
-    x.fillStyle = '#13203d'; x.font = F(700, 32); x.textAlign = 'right';
-    let t = String(val); while (x.measureText(t).width > cw - 380 && t.length > 4) t = t.slice(0, -2); if (t !== String(val)) t += '…';
-    x.fillText(t, cx + cw - 60, yy); x.textAlign = 'left'; yy += 72;
+  const rows = [['Cliente', v.n], ['Teléfono', v.t], ['Premio', r.premio || '—'], ['Valor boleta', r.precio ? money(r.precio) : 'Gratis'], ['Juega con', r.loteria || 'Por definir'], ['Fecha del sorteo', fmtFechaCorta(r.fecha)]];
+  let yy = cut + 78;
+  rows.forEach(([l, val], i) => {
+    x.textAlign = 'left'; x.fillStyle = '#5b667f'; x.font = F(500, 30); x.fillText(l, cx + 60, yy);
+    x.textAlign = 'right'; x.fillStyle = '#101a33'; x.font = F(600, 32);
+    let t = String(val); while (x.measureText(t).width > cw - 400 && t.length > 4) t = t.slice(0, -2); if (t !== String(val)) t += '…';
+    x.fillText(t, cx + cw - 60, yy);
+    if (i < rows.length - 1){ x.fillStyle = '#edf0f5'; x.fillRect(cx + 60, yy + 26, cw - 120, 2); }
+    yy += 70;
   });
-  x.textAlign = 'center'; x.fillStyle = '#9aa5bd'; x.font = F(500, 24);
-  x.fillText(`Código: ${v.cod || '-'}  ·  Emitida: ${new Date(v.fp || v.f || Date.now()).toLocaleDateString('es-CO')}`, W / 2, cy + ch - 40);
+  x.textAlign = 'center'; x.fillStyle = '#8a94a8'; x.font = F(500, 24);
+  x.fillText(`Código ${v.cod || '—'}   ·   Emitida ${new Date(v.fp || v.f || Date.now()).toLocaleDateString('es-CO')}`, W / 2, cy + ch - 42);
   // pie
-  x.fillStyle = '#fff'; x.font = F(700, 34); x.fillText('¡Mucha suerte! 🍀', W / 2, H - 70);
-  x.fillStyle = 'rgba(255,255,255,.6)'; x.font = F(500, 22); x.fillText('Conserva esta boleta. Es tu comprobante de participación.', W / 2, H - 30);
+  x.fillStyle = '#ffffff'; x.font = F(700, 38); x.fillText('¡Buena suerte!', W / 2, H - 68);
+  x.fillStyle = 'rgba(255,255,255,.65)'; x.font = F(500, 22); x.fillText('Conserva esta boleta, es tu comprobante de participación.', W / 2, H - 28);
   return c;
 }
 async function modalBoleta(k){
   const r = getRifa(UI.rifaId); const v = r.nums[k];
   modal(`<h2>🎟️ Boleta ${k}</h2><div id="bPrev" class="muted" style="text-align:center;padding:30px">Generando boleta...</div>
     <button class="btn wa block" id="bShare">📤 Enviar boleta (imagen) a ${esc(v.n.split(' ')[0])}</button>
-    <div class="row" style="margin-top:10px"><button class="btn navy" id="bText">💬 Enviar datos</button><button class="btn ghost" id="bDown">⬇️ Descargar</button></div>
-    <p class="muted" style="font-size:11px;margin-top:10px">“Enviar boleta” abre el menú de compartir: elige WhatsApp y el chat de tu cliente. “Enviar datos” abre directo su chat con la boleta en texto.</p>`);
+    <div class="row" style="margin-top:10px"><button class="btn navy" id="bText">💬 Abrir su chat</button><button class="btn ghost" id="bDown">⬇️ Descargar</button></div>
+    <p class="muted" style="font-size:11px;margin-top:10px">“Enviar boleta” abre el menú de compartir: elige WhatsApp y el chat de tu cliente. La boleta va acompañada solo del mensaje “¡Buena suerte! 🍀”.</p>`);
   const canvas = await dibujarBoleta(r, k);
   const img = new Image(); img.className = 'boleta-prev'; img.src = canvas.toDataURL('image/png');
   $('#bPrev').replaceWith(img);
   const fname = `Boleta_${k}_${r.nombre.replace(/[^\w]+/g, '_')}.png`;
-  const texto = `🎟️ *BOLETA RIFA PRESTAYA* 🎟️\n\nHola ${v.n} 👋, ${v.e === 'p' ? '¡tu pago fue confirmado! ✅' : 'tu número quedó apartado.'}\n\n*Rifa:* ${r.nombre}\n*Tu número:* ${k}\n*Premio:* ${r.premio || '-'}\n*Valor:* ${money(r.precio)}\n*Juega con:* ${r.loteria || '-'}\n*Sorteo:* ${fmtFecha(r.fecha)}\n*Estado:* ${v.e === 'p' ? 'PAGADO ✅' : 'APARTADO (pendiente de pago)'}\n*Código:* ${v.cod}\n\n¡Mucha suerte! 🍀`;
+  const texto = '¡Buena suerte! 🍀';
   $('#bDown').onclick = () => { const a = document.createElement('a'); a.download = fname; a.href = img.src; a.click(); };
   $('#bText').onclick = () => openWA(v.t, texto);
   $('#bShare').onclick = () => canvas.toBlob(async blob => {
