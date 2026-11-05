@@ -206,7 +206,7 @@ h3{font-size:15px;font-weight:700}
 /* =========================================================
    RIFAS PRESTAYA  ·  v1.0
    ========================================================= */
-const VERSION = 'v1.3';
+const VERSION = 'v1.4';
 const DEFAULT_WA = '573162685282';
 const KEY = 'rifasPY_data_v1';
 const KEY_CFG = 'rifasPY_cfg_v1';
@@ -516,8 +516,8 @@ function formRifa(id){
       </div>
       ${tieneVentas ? '<p class="muted" style="font-size:11px;margin-top:5px">No se pueden cambiar las cifras porque ya hay números vendidos.</p>' : ''}
     </div>
-    <div class="field"><label for="fMax">Números máximos por cliente</label><input id="fMax" inputmode="numeric" maxlength="2" placeholder="Sin límite (hasta ${MAX_SEL})" value="${r?.max || ''}">
-      <p class="muted" style="font-size:11px;margin-top:5px">Ej: 2 → cada cliente puede elegir solo 2 números; al completarlos, los demás se bloquean.</p></div>
+    <div class="field"><label for="fMax">Oportunidades por cliente (por defecto)</label><input id="fMax" inputmode="numeric" maxlength="2" placeholder="Sin límite (hasta ${MAX_SEL})" value="${r?.max || ''}">
+      <p class="muted" style="font-size:11px;margin-top:5px">Ej: 2 → el cliente elige 2 números y los demás se bloquean. Al compartir puedes cambiarlo para cada enlace.</p></div>
     <div class="row">
       <div class="field"><label>Valor boleta</label><input id="fVal" inputmode="numeric" placeholder="10000" value="${r ? r.precio : ''}"></div>
       <div class="field"><label>Fecha sorteo</label><input id="fFec" type="date" value="${r?.fecha || ''}"></div>
@@ -657,35 +657,72 @@ function payloadRifa(r){
   return b64urlEncode(JSON.stringify(p));
 }
 const baseURL = () => location.origin + location.pathname.replace(/index\.html$/, '');
+/* Enlace compacto: campos separados por ~ (sin JSON ni base64) */
+const encF = v => encodeURIComponent(String(v ?? '')).replace(/~/g, '%7E').replace(/%20/g, '+');
+const decF = v => { try{ return decodeURIComponent(String(v || '').replace(/\+/g, ' ')); }catch(e){ return v; } };
+function compactRifa(r, opp){
+  const taken = Object.keys(r.nums).map(Number);
+  const sp = sparseEncode(taken.slice()), bs = bitsetEncode(taken, total(r));
+  const tk = taken.length ? (sp.length <= bs.length ? 's' + sp : 'b' + bs) : '';
+  const f = [r.id, r.cifras, opp ?? (r.max || ''), r.precio || '', (r.fecha || '').replace(/-/g, ''), r.nombre, r.premio, r.loteria, r.desc, r.pago, waNum(CFG.wa) === DEFAULT_WA ? '' : CFG.wa, tk].map(encF);
+  while (f.length && f[f.length - 1] === '') f.pop();
+  return f.join('~');
+}
+function decodeCompact(str){
+  const f = str.split('~').map(decF);
+  const o = { i: f[0], c: +f[1], m: +f[2] || 0, v: +f[3] || 0, n: f[5] || '', p: f[6] || '', l: f[7] || '', d: f[8] || '', g: f[9] || '', w: f[10] || DEFAULT_WA };
+  if (f[4] && f[4].length === 8) o.f = f[4].slice(0, 4) + '-' + f[4].slice(4, 6) + '-' + f[4].slice(6);
+  const tk = f[11] || ''; if (tk[0] === 's') o.s = tk.slice(1); else if (tk[0] === 'b') o.b = tk.slice(1);
+  return o;
+}
 function fbCode(){ // dirección de Firebase resumida para el enlace
   const h = fbBase().replace(/^https:\/\//, '');
-  return h.endsWith('.firebaseio.com') ? h.replace('.firebaseio.com', '') : '!' + h;
+  if (h.endsWith('-default-rtdb.firebaseio.com')) return h.replace('-default-rtdb.firebaseio.com', '');
+  if (h.endsWith('.firebaseio.com')) return '*' + h.replace('.firebaseio.com', '');
+  return '!' + h;
 }
-function fbFromCode(c){ return 'https://' + (c[0] === '!' ? c.slice(1) : c + '.firebaseio.com'); }
-function linkRifa(r){
-  if (fbBase()) return baseURL() + '#f=' + fbCode() + '~' + r.id;
-  return baseURL() + '#r=' + payloadRifa(r);
+function fbFromCode(c){
+  if (c[0] === '!') return 'https://' + c.slice(1);
+  if (c[0] === '*') return 'https://' + c.slice(1) + '.firebaseio.com';
+  if (c.includes('-default-rtdb') || c.includes('.')) return 'https://' + (c.includes('.') ? c : c + '.firebaseio.com'); // enlaces v1.3
+  return 'https://' + c + '-default-rtdb.firebaseio.com';
+}
+function linkRifa(r, opp){
+  if (fbBase()) return baseURL() + '#' + fbCode() + '~' + r.id + (opp != null ? '~' + opp : '');
+  return baseURL() + '#=' + compactRifa(r, opp);
 }
 function fbPushCfg(r){ if (fbBase()) return fbReq(fbBase(), `/rifasPY/${r.id}/cfg`, 'PUT', cfgRifa(r)).catch(() => {}); }
 function modalCompartir(){
-  const r = getRifa(UI.rifaId); syncAdmin(r, false); fbPushCfg(r); const url = linkRifa(r);
-  const msg = `🎟️ *RIFA PRESTAYA* 🎟️\n\n*${r.nombre}*\n🏆 Premio: ${r.premio || '-'}\n💵 Valor boleta: ${money(r.precio)}\n🎲 Juega con: ${r.loteria || '-'}\n📅 Sorteo: ${fmtFecha(r.fecha)}\n\n👉 Elige tu número favorito aquí:\n${url}`;
+  const r = getRifa(UI.rifaId); syncAdmin(r, false); fbPushCfg(r);
+  let opp = r.max || 1;
   modal(`
     <h2>🔗 Compartir rifa</h2>
     <p class="muted">Tu cliente abre el enlace, elige su número y te envía sus datos a tu WhatsApp <b>+${esc(CFG.wa)}</b>.</p>
-    <div class="linkbox">${esc(url)}</div>
+    <div class="field" style="margin-top:12px"><label>Cantidad de oportunidades</label>
+      <div class="seg" id="shOpp">${[1, 2, 3, 4, 5].map(n => `<button type="button" data-o="${n}" class="${n === opp ? 'on' : ''}">${n}<small>${n === 1 ? 'número' : 'números'}</small></button>`).join('')}</div>
+      <p class="muted" style="font-size:11px;margin-top:5px">El cliente que abra este enlace podrá elegir esa cantidad de números.</p>
+    </div>
+    <div class="linkbox" id="shLink"></div>
     <button class="btn wa block" id="shWA">💬 Compartir por WhatsApp</button>
     <div class="row" style="margin-top:10px">
       <button class="btn navy" id="shCopy">📋 Copiar enlace</button>
       <button class="btn ghost" id="shMore">📤 Más</button>
     </div>
-    <button class="btn ghost block" style="margin-top:10px" onclick="verComoCliente()">👁️ Ver como cliente (vista previa)</button>
+    <button class="btn ghost block" style="margin-top:10px" id="shPrev">👁️ Ver como cliente (vista previa)</button>
     ${fbBase() ? `<div class="note" style="background:#e2f7ec;border-color:var(--green);color:#0d6b3b">🟢 <b>Conexión en vivo activa.</b> Cuando un cliente aparta un número, queda bloqueado al instante para todos y te aparece aquí solo.</div>`
-  : `<div class="note">💡 Sin conexión en vivo, el enlace muestra los números ocupados <b>al momento de compartir</b>. Para que se bloqueen al instante para todos los clientes, activa la <b>Conexión en vivo</b> en ⚙️ Ajustes.</div>`}
+  : `<div class="note">💡 Sin conexión en vivo, el enlace muestra los números ocupados <b>al momento de compartir</b>. Para que se bloqueen al instante para todos y el enlace sea aún más corto, activa la <b>Conexión en vivo</b> en ⚙️ Ajustes.</div>`}
   `);
-  $('#shWA').onclick = () => openURL('https://wa.me/?text=' + encodeURIComponent(msg));
-  $('#shCopy').onclick = () => copiar(url);
-  $('#shMore').onclick = () => navigator.share ? navigator.share({ title: 'Rifa PrestaYa', text: msg.replace(url, ''), url }).catch(() => {}) : copiar(msg);
+  const url = () => linkRifa(r, opp);
+  const msg = () => `👉 Elige tu número favorito aquí:\n${url()}`;
+  const pinta = () => { $('#shLink').textContent = url(); };
+  pinta();
+  document.querySelectorAll('#shOpp button').forEach(b => b.onclick = () => {
+    document.querySelectorAll('#shOpp button').forEach(x => x.classList.remove('on')); b.classList.add('on'); opp = +b.dataset.o; pinta();
+  });
+  $('#shWA').onclick = () => openURL('https://wa.me/?text=' + encodeURIComponent(msg()));
+  $('#shCopy').onclick = () => copiar(url());
+  $('#shMore').onclick = () => navigator.share ? navigator.share({ text: '👉 Elige tu número favorito aquí:', url: url() }).catch(() => {}) : copiar(msg());
+  $('#shPrev').onclick = () => verComoCliente(opp);
 }
 function copiar(t){
   if (navigator.clipboard) navigator.clipboard.writeText(t).then(() => toast('Copiado ✅')).catch(() => fallbackCopy(t));
@@ -835,10 +872,10 @@ function exportCSV(){
    CLIENTE
    ========================================================= */
 let C = null; const CSEL = new Set(); let PREVIEW = false;
-function verComoCliente(){
+function verComoCliente(opp){
   const raw = payloadRifa(getRifa(UI.rifaId));
   closeModal(); PREVIEW = true; CSEL.clear();
-  $('#admin').classList.add('hidden'); initCliente(raw); window.scrollTo(0, 0);
+  $('#admin').classList.add('hidden'); initCliente(raw, opp); window.scrollTo(0, 0);
 }
 function salirPreview(){
   PREVIEW = false; CSEL.clear(); closeModal();
@@ -850,17 +887,18 @@ let C_TIMER = null;
 async function initClienteFB(code){
   const el = $('#cliente'); el.classList.remove('hidden');
   el.innerHTML = `<div class="wrap"><div class="card empty" style="margin-top:60px"><div class="big">🎟️</div><h2>Cargando rifa…</h2></div></div>`;
-  const [fc, id] = code.split('~'); const u = fbFromCode(fc || '');
+  const [fc, id, opp] = code.split('~'); const u = fbFromCode(fc || '');
   try{
     const cfg = await fbReq(u, `/rifasPY/${id}/cfg`);
     if (!cfg || !cfg.c) throw 0;
-    initCliente(b64urlEncode(JSON.stringify({ ...cfg, i: id, u })));
+    initCliente(b64urlEncode(JSON.stringify({ ...cfg, i: id, u })), opp);
   }catch(e){
     el.innerHTML = `<div class="wrap"><div class="card empty" style="margin-top:40px"><div class="big">📶</div><h2>No se pudo cargar la rifa</h2><p class="muted" style="margin:8px 0 16px">Revisa tu conexión a internet e inténtalo de nuevo.</p><button class="btn block" onclick="location.reload()">Reintentar</button></div></div>`;
   }
 }
-function initCliente(raw){
+function initCliente(raw, opp){
   try{ C = JSON.parse(b64urlDecode(raw)); }catch(e){ C = null; }
+  if (C && opp != null && opp !== '') C.m = Math.min(+opp || 0, MAX_SEL);
   const el = $('#cliente'); el.classList.remove('hidden');
   if (!C || !C.c){ el.innerHTML = `<div class="wrap"><div class="card empty" style="margin-top:40px"><div class="big">😕</div><h2>Enlace no válido</h2><p class="muted">Pide a PrestaYa que te envíe nuevamente el enlace de la rifa.</p></div></div>`; return; }
   C.size = Math.pow(10, C.c); C.taken = C.s != null ? sparseDecode(C.s) : bitsetDecode(C.b, C.size); C.soloLibres = false;
@@ -917,12 +955,12 @@ function renderCliente(){
     <main class="wrap">
       <div class="card info-card">
         <div class="info-grid">
-          <div><span>💵 Valor boleta</span><b>${money(C.v)}</b></div>
+          <div><span>💵 Valor boleta</span><b>${C.v ? money(C.v) : 'Gratis'}</b></div>
           <div><span>📅 Fecha sorteo</span><b>${fmtFechaCorta(C.f)}</b></div>
           <div><span>🎲 Juega con</span><b>${esc(C.l || 'Por definir')}</b></div>
-          <div><span>🔢 Disponibles</span><b id="cDisp"></b></div>
+          <div><span>🎁 Participación</span><b>Rifa gratuita</b></div>
         </div>
-        ${C.m ? `<p style="margin-top:12px;font-size:13px;font-weight:600;color:var(--navy3)">🎟️ Cada cliente puede elegir máximo ${C.m} número${C.m > 1 ? 's' : ''}</p>` : ''}
+        ${C.m ? `<p style="margin-top:12px;font-size:13px;font-weight:600;color:var(--navy3)">🎟️ Tienes ${C.m} oportunidad${C.m > 1 ? 'es' : ''}: elige ${C.m === 1 ? 'tu número' : C.m + ' números'}</p>` : ''}
         ${C.d ? `<p class="muted" style="margin-top:12px">📌 ${esc(C.d)}</p>` : ''}
         ${C.u && !PREVIEW ? `<p class="muted" id="cLive" style="margin-top:10px;font-size:12px">⚪ Verificando disponibilidad…</p>` : ''}
       </div>
@@ -930,16 +968,6 @@ function renderCliente(){
       <div class="card">
         <h3>👇 Elige tu número favorito</h3>
         <p class="muted" style="margin-bottom:12px">Desliza el panel para ver todos los números. Toca ${C.m === 1 ? 'tu número' : C.m ? 'hasta ' + C.m + ' números' : 'uno o varios'} y luego <b>Continuar</b>.</p>
-        <div class="row" style="margin-bottom:10px">
-          <input id="cGo" class="search" style="margin:0" type="search" inputmode="numeric" maxlength="${C.c}" placeholder="🔍 Buscar ${'0'.repeat(C.c)}">
-          <button class="btn navy sm" style="flex:0 0 auto" onclick="cIr()">Ir</button>
-          <button class="btn gold sm" style="flex:0 0 auto" onclick="cAzar()">🎲</button>
-        </div>
-        <div class="chips">
-          <button class="chip on" id="chTodos" onclick="cSolo(false)">Todos</button>
-          <button class="chip" id="chLibres" onclick="cSolo(true)">Solo disponibles</button>
-        </div>
-        <div class="legend"><span><i></i>Disponible</span><span><i style="background:var(--gold);border-color:#e8a900"></i>Tu selección</span><span><i style="background:#ffe3e6;border-color:var(--red)"></i>🔒 No disponible</span>${mineSet.size ? '<span><i style="background:var(--navy);border-color:var(--navy)"></i>Tuyo</span>' : ''}</div>
         <div class="gridbox" id="cBox"><div class="grid c${C.c}" id="cGrid">${cells}</div></div>
       </div>
       <div class="foot">Rifas PrestaYa · ${VERSION}<br>Tus datos se envían únicamente al WhatsApp de PrestaYa.</div>
@@ -947,13 +975,12 @@ function renderCliente(){
     <div id="selBar"></div>`;
   updateCount(); renderSelBar(); if (C.u && !PREVIEW) syncCliente();
   $('#cGrid').onclick = e => { const b = e.target.closest('.num'); if (b) cToggle(b.dataset.k, b); };
-  $('#cGo').onkeydown = e => { if (e.key === 'Enter') cIr(); };
 }
 function renderSelBar(){
   const el = $('#selBar'); if (!el) return;
   const g = $('#cGrid'); if (g) g.classList.toggle('maxed', !!C.m && cUsados() >= cMax());
   el.innerHTML = CSEL.size ? `<div class="sticky-sel">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b>${C.m ? cUsados() + ' de ' + C.m + ' número' + (C.m > 1 ? 's' : '') : CSEL.size + ' número' + (CSEL.size > 1 ? 's' : '')} · ${money(C.v * CSEL.size)}</b><button class="btn ghost sm" onclick="cLimpiar()">Limpiar</button></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b>${C.m ? cUsados() + ' de ' + C.m + ' oportunidad' + (C.m > 1 ? 'es' : '') : CSEL.size + ' número' + (CSEL.size > 1 ? 's' : '')}${C.v ? ' · ' + money(C.v * CSEL.size) : ''}</b><button class="btn ghost sm" onclick="cLimpiar()">Limpiar</button></div>
       <div class="sel-nums">${[...CSEL].sort().map(k => `<span>${k}</span>`).join('')}</div>
       <button class="btn block" onclick="cForm()">Continuar ➜</button>
     </div>` : '';
@@ -973,9 +1000,9 @@ function cToggle(k, b){
   }
   if (CSEL.has(k)) CSEL.delete(k);
   else {
-    if (cUsados() >= cMax()){ shake(b); return toast(C.m ? `🎟️ Ya elegiste ${C.m === 1 ? 'tu número' : 'tus ' + C.m + ' números'}. Es el máximo permitido por cliente.` : `Máximo ${MAX_SEL} números por reserva`, 3000); }
+    if (cUsados() >= cMax()){ shake(b); return toast(C.m ? `🎟️ Ya usaste ${C.m === 1 ? 'tu oportunidad' : 'tus ' + C.m + ' oportunidades'}. No puedes elegir más números.` : `Máximo ${MAX_SEL} números por reserva`, 3000); }
     CSEL.add(k); if (navigator.vibrate) navigator.vibrate(15);
-    if (C.m && cUsados() >= cMax()) toast(`✅ Completaste ${C.m === 1 ? 'tu número' : 'tus ' + C.m + ' números'}. Toca Continuar.`);
+    if (C.m && cUsados() >= cMax()) toast(`✅ Completaste ${C.m === 1 ? 'tu oportunidad' : 'tus ' + C.m + ' oportunidades'}. Toca Continuar.`);
   }
   updateCell(k); renderSelBar();
 }
@@ -1003,7 +1030,7 @@ function cForm(){
     <div style="background:#f4f7fc;border-radius:14px;padding:12px;margin-bottom:14px">
       <div class="muted">${esc(C.n)}</div>
       <div style="font-size:24px;font-weight:900;color:var(--navy);letter-spacing:1px">${nums.join(' · ')}</div>
-      <div class="muted">Total: <b style="color:var(--green2)">${money(C.v * nums.length)}</b></div>
+      ${C.v ? `<div class="muted">Total: <b style="color:var(--green2)">${money(C.v * nums.length)}</b></div>` : ''}
     </div>
     <div class="field"><label for="cNom">Nombre completo</label><input id="cNom" maxlength="50" autocomplete="name" placeholder="Tu nombre y apellido" value="${esc(prev.n || '')}"></div>
     <div class="field"><label for="cTel">Teléfono / WhatsApp</label><input id="cTel" inputmode="tel" maxlength="13" autocomplete="tel" placeholder="3001234567" value="${esc(prev.t || '')}"></div>
@@ -1027,7 +1054,7 @@ async function cEnviar(){
       const d = await fetch(`${C.u}/rifasPY/${C.i}/nums.json`, { cache: 'no-store' }).then(r => { if (!r.ok) throw 0; return r.json(); }) || {};
       if (C.m){
         const tiene = Object.values(d).filter(v => v && waNum(v.t) === waNum(t)).length;
-        if (tiene + nums.length > C.m){ closeModal(); return showMsg(`Este teléfono ya tiene <b>${tiene}</b> número${tiene === 1 ? '' : 's'} en esta rifa. El máximo por cliente es <b>${C.m}</b>.`); }
+        if (tiene + nums.length > C.m){ closeModal(); return showMsg(`Este teléfono ya tiene <b>${tiene}</b> número${tiene === 1 ? '' : 's'} en esta rifa. El máximo es <b>${C.m}</b> oportunidad${C.m > 1 ? 'es' : ''}.`); }
       }
       const ocup = nums.filter(k => d['n' + k]);
       if (ocup.length){
@@ -1051,7 +1078,7 @@ async function cEnviar(){
   }
   nums.forEach(k => C.taken.add(+k));
   CSEL.clear();
-  const msg = `🎟️ *NUEVA RESERVA - RIFA PRESTAYA*\n\n*Rifa:* ${C.n}\n*Número(s):* ${nums.join(', ')}\n*Nombre:* ${n}\n*Teléfono:* ${t}\n*Valor:* ${money(C.v * nums.length)}`;
+  const msg = `🎟️ *NUEVA RESERVA - RIFA PRESTAYA*\n\n*Rifa:* ${C.n}\n*Número(s):* ${nums.join(', ')}\n*Nombre:* ${n}\n*Teléfono:* ${t}${C.v ? '\n*Valor:* ' + money(C.v * nums.length) : ''}`;
   const waUrl = 'https://wa.me/' + waNum(C.w || DEFAULT_WA) + '?text=' + encodeURIComponent(msg);
   if (!live) openURL(waUrl);
   modal(`<div class="success"><div class="ic">✓</div><h2>¡Apartado, ${esc(n.split(' ')[0])}!</h2>
@@ -1068,6 +1095,8 @@ function route(){
   const h = location.hash;
   if (h.startsWith('#r=')){ $('#admin').classList.add('hidden'); initCliente(h.slice(3)); }
   else if (h.startsWith('#f=')){ $('#admin').classList.add('hidden'); initClienteFB(h.slice(3)); }
+  else if (h.startsWith('#=')){ $('#admin').classList.add('hidden'); initCliente(b64urlEncode(JSON.stringify(decodeCompact(h.slice(2))))); }
+  else if (h.length > 2 && h.includes('~')){ $('#admin').classList.add('hidden'); initClienteFB(h.slice(1)); }
   else { $('#cliente').classList.add('hidden'); $('#admin').classList.remove('hidden'); $('#verTxt').textContent = VERSION; renderLista(); if (fbBase()) syncTodas(); }
 }
 window.addEventListener('hashchange', () => { closeModal(); route(); });
