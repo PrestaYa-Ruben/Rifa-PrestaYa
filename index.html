@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="theme-color" content="#0b1f4b">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -21,8 +21,10 @@
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{background:var(--bg);color:var(--text);font-family:'Poppins',system-ui,sans-serif}
 body{min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}
+html{-webkit-text-size-adjust:100%;text-size-adjust:100%;touch-action:manipulation}
+button,a,.num,.chip,label{touch-action:manipulation}
 button{font-family:inherit;cursor:pointer;border:none}
-input,select,textarea{font-family:inherit;font-size:16px}
+input,select,textarea{font-family:inherit;font-size:16px!important}
 .hidden{display:none!important}
 
 /* HEADER */
@@ -123,7 +125,7 @@ h3{font-size:15px;font-weight:700}
 .field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--green);background:#fff}
 .detect{background:#f1f5fd;border:1.5px dashed #b9c7e3;border-radius:14px;padding:12px;margin-bottom:14px}
 .detect label{display:block;font-size:12px;font-weight:700;color:var(--navy3);margin-bottom:6px;text-transform:uppercase;letter-spacing:.4px}
-.detect textarea{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:#fff;color:var(--text);resize:vertical;font-size:15px}
+.detect textarea{width:100%;padding:10px 12px;border-radius:10px;border:1.5px solid var(--line);background:#fff;color:var(--text);resize:vertical;font-size:16px}
 .detect textarea:focus{outline:none;border-color:var(--navy3)}
 .field input.filled{animation:filled 1.2s}
 @keyframes filled{0%,40%{background:#e2f7ec;border-color:var(--green)}}
@@ -219,7 +221,7 @@ h3{font-size:15px;font-weight:700}
 /* =========================================================
    RIFAS PRESTAYA  ·  v1.0
    ========================================================= */
-const VERSION = 'v1.8';
+const VERSION = 'v1.9';
 const DEFAULT_WA = '573162685282';
 const KEY = 'rifasPY_data_v1';
 const KEY_CFG = 'rifasPY_cfg_v1';
@@ -1077,7 +1079,7 @@ function renderCliente(){
       ${mineSet.size ? `<div class="card" style="background:#0b1f4b;color:#fff"><h3>⭐ Tus números reservados</h3><p style="font-size:22px;font-weight:800;letter-spacing:1px;margin-top:4px">${[...mineSet].join(' · ')}</p><p style="font-size:12px;opacity:.75;margin-top:4px">Pendientes de confirmación de pago por PrestaYa.</p></div>` : ''}
       <div class="card">
         <h3>👇 Elige tu número favorito</h3>
-        <p class="muted" style="margin-bottom:12px">Desliza el panel para ver todos los números. Toca ${C.m === 1 ? 'tu número' : C.m ? 'hasta ' + C.m + ' números' : 'uno o varios'} y luego <b>Continuar</b>.</p>
+        <p class="muted" style="margin-bottom:12px">Desliza el panel para ver todos los números. Toca ${C.m === 1 ? 'tu número' : C.m ? 'tus ' + C.m + ' números' : 'uno o varios'} y luego <b>Continuar</b>.</p>
         <div class="gridbox" id="cBox"><div class="grid c${C.c}" id="cGrid">${cells}</div></div>
       </div>
       <div class="foot">Rifas PrestaYa · ${VERSION}<br>Tus datos se envían únicamente al WhatsApp de PrestaYa.</div>
@@ -1092,7 +1094,8 @@ function renderSelBar(){
   el.innerHTML = CSEL.size ? `<div class="sticky-sel">
       <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b>${C.m ? cUsados() + ' de ' + C.m + ' oportunidad' + (C.m > 1 ? 'es' : '') : CSEL.size + ' número' + (CSEL.size > 1 ? 's' : '')}${C.v ? ' · ' + money(C.v * CSEL.size) : ''}</b><button class="btn ghost sm" onclick="cLimpiar()">Limpiar</button></div>
       <div class="sel-nums">${[...CSEL].sort().map(k => `<span>${k}</span>`).join('')}</div>
-      <button class="btn block" onclick="cForm()">Continuar ➜</button>
+      ${!C.m || cUsados() >= cMax() ? `<button class="btn block" onclick="cForm()">Continuar ➜</button>`
+        : `<p class="muted" style="text-align:center;font-size:13px;font-weight:600;padding:6px 0 2px">Elige ${cMax() - cUsados()} número${cMax() - cUsados() > 1 ? 's' : ''} más para continuar</p>`}
     </div>` : '';
 }
 function cLimpiar(){ const ks = [...CSEL]; CSEL.clear(); ks.forEach(updateCell); renderSelBar(); }
@@ -1133,6 +1136,7 @@ function cAzar(){
   setTimeout(() => scrollToNum($('#cBox'), k), 30); toast('🎲 Te salió el ' + k);
 }
 function cForm(){
+  if (C.m && cUsados() < cMax()) return toast(`Elige ${cMax() - cUsados()} número${cMax() - cUsados() > 1 ? 's' : ''} más`);
   const nums = [...CSEL].sort();
   const prev = ls.get('rifasPY_cliente', {});
   modal(`
