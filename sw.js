@@ -1,4 +1,4 @@
-const CACHE = 'rifas-py-v1.6';
+const CACHE = 'rifas-py-v1.7';
 const ASSETS = ['./', './index.html', './manifest.json', './icons/icon-192.png', './icons/icon-512.png'];
 
 self.addEventListener('install', e => {

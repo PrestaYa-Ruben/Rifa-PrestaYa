@@ -135,7 +135,14 @@ h3{font-size:15px;font-weight:700}
 /* MODAL */
 .modal{position:fixed;inset:0;background:rgba(8,18,44,.6);z-index:100;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px);animation:fade .2s}
 .sheet{background:#fff;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;border-radius:26px 26px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom));animation:up .25s ease}
-.sheet .handle{width:44px;height:5px;background:#dde3ee;border-radius:5px;margin:-6px auto 14px}
+.sheet .handle{width:44px;height:5px;background:#dde3ee;border-radius:5px}
+.sheet-bar{display:flex;align-items:center;justify-content:space-between;margin:-8px -4px 10px}
+.sheet-bar .sp{width:42px}
+.backbtn{width:42px;height:42px;border-radius:13px;background:#eef2f9;color:var(--navy);font-size:22px;font-weight:800;display:grid;place-items:center;line-height:1}
+.backbtn:active{transform:scale(.94)}
+.backbtn:focus-visible,.iconbtn:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.chk{display:flex;gap:10px;align-items:flex-start;background:#f4f7fc;border-radius:12px;padding:12px;margin-bottom:12px;font-size:13px;font-weight:600;color:var(--navy);cursor:pointer}
+.chk input{width:20px;height:20px;accent-color:var(--green);flex-shrink:0;margin-top:1px}
 .sheet h2{margin-bottom:12px}
 @keyframes up{from{transform:translateY(100%)}}
 @keyframes fade{from{opacity:0}}
@@ -185,7 +192,7 @@ h3{font-size:15px;font-weight:700}
 <!-- ===================== ADMIN ===================== -->
 <div id="admin" class="hidden">
   <header class="top">
-    <div class="brand"><span class="logo">Presta<b>Ya</b></span><span class="tag">RIFAS</span></div>
+    <div class="brand"><button type="button" class="iconbtn hidden" id="btnBack" aria-label="Volver a mis rifas" onclick="renderLista()" style="font-size:22px;font-weight:800">←</button><span class="logo">Presta<b>Ya</b></span><span class="tag">RIFAS</span></div>
     <div class="sub" id="topSub">Crea, administra y comparte tus rifas</div>
     <div class="ver" id="verTxt"></div>
     <div class="actions">
@@ -212,7 +219,7 @@ h3{font-size:15px;font-weight:700}
 /* =========================================================
    RIFAS PRESTAYA  ·  v1.0
    ========================================================= */
-const VERSION = 'v1.6';
+const VERSION = 'v1.7';
 const DEFAULT_WA = '573162685282';
 const KEY = 'rifasPY_data_v1';
 const KEY_CFG = 'rifasPY_cfg_v1';
@@ -287,7 +294,7 @@ function stats(r){
 }
 
 function renderLista(){
-  $('#vLista').classList.remove('hidden'); $('#vDetalle').classList.add('hidden'); $('#fabNew').classList.remove('hidden');
+  $('#vLista').classList.remove('hidden'); $('#vDetalle').classList.add('hidden'); $('#fabNew').classList.remove('hidden'); $('#btnBack').classList.add('hidden'); UI.rifaId = null;
   $('#topSub').textContent = 'Crea, administra y comparte tus rifas';
   const el = $('#vLista');
   if (!DB.rifas.length){
@@ -322,12 +329,12 @@ function abrirRifa(id){ UI.rifaId = id; UI.tab = 'nums'; UI.filtro = 'todos'; UI
 
 function renderDetalle(){
   const r = getRifa(UI.rifaId); if (!r) return renderLista();
-  $('#vLista').classList.add('hidden'); $('#vDetalle').classList.remove('hidden'); $('#fabNew').classList.add('hidden');
+  $('#vLista').classList.add('hidden'); $('#vDetalle').classList.remove('hidden'); $('#fabNew').classList.add('hidden'); $('#btnBack').classList.remove('hidden');
   $('#topSub').textContent = r.nombre;
   const s = stats(r);
   $('#vDetalle').innerHTML = `
     <div class="row" style="margin-bottom:12px">
-      <button class="btn ghost sm" style="flex:0 0 auto" onclick="renderLista()">← Rifas</button>
+      <button class="btn ghost sm" style="flex:0 0 auto" onclick="renderLista();window.scrollTo(0,0)">← Mis rifas</button>
       <span></span>
       <button class="btn ghost sm" style="flex:0 0 auto" onclick="formRifa('${r.id}')">✏️ Editar</button>
     </div>
@@ -498,9 +505,10 @@ function avisarGanador(){
 }
 
 /* ---------- Modales ---------- */
-function modal(html, onClose){
+function modal(html, onClose, onBack){
   const m = document.createElement('div'); m.className = 'modal';
-  m.innerHTML = `<div class="sheet"><div class="handle"></div>${html}</div>`;
+  m.innerHTML = `<div class="sheet"><div class="sheet-bar"><button type="button" class="backbtn" aria-label="Atrás">←</button><div class="handle"></div><span class="sp"></span></div>${html}</div>`;
+  m.querySelector('.backbtn').onclick = () => onBack ? onBack() : closeModal();
   m.addEventListener('click', e => { if (e.target === m) closeModal(); });
   $('#modalRoot').innerHTML = ''; $('#modalRoot').appendChild(m);
   m._onClose = onClose;
@@ -556,9 +564,14 @@ function borrarRifa(id){
   });
 }
 
+function grupoCliente(r, k){
+  const v = r.nums[k]; if (!v) return [k];
+  const t = waNum(v.t); return Object.keys(r.nums).filter(x => waNum(r.nums[x].t) === t).sort();
+}
 function modalNumero(k){
   const r = getRifa(UI.rifaId); const v = r.nums[k] || { n: '', t: '', e: 'r' };
   const libre = !r.nums[k];
+  const grupo = libre ? [k] : grupoCliente(r, k);
   modal(`
     <div class="muted" style="text-align:center">${esc(r.nombre)}</div>
     <div class="big-num" style="margin:6px 0 4px">${k}</div>
@@ -579,6 +592,7 @@ function modalNumero(k){
         <button type="button" data-e="p" class="${v.e === 'p' ? 'on' : ''}">🟢 Pagado<small>Confirmado</small></button>
       </div>
     </div>
+    ${grupo.length > 1 ? `<label class="chk"><input type="checkbox" id="nAll" checked><span>Aplicar este estado a todos sus números: <b>${grupo.join(', ')}</b></span></label>` : ''}
     <button class="btn block" onclick="guardarNumero('${k}')">💾 Guardar</button>
     ${!libre ? `
       <div class="row" style="margin-top:10px">
@@ -637,7 +651,9 @@ function guardarNumero(k, verBoleta){
   if (t.replace(/\D/g, '').length < 7) return toast('Escribe un teléfono válido');
   const e = document.querySelector('#nEst button.on').dataset.e;
   const prev = r.nums[k];
+  const todos = $('#nAll')?.checked ? grupoCliente(r, k) : [k];
   r.nums[k] = { n, t, e, f: prev?.f || Date.now(), fp: e === 'p' ? (prev?.fp || Date.now()) : null, cod: prev?.cod || ('PY-' + uid().toUpperCase().slice(0, 6)) };
+  todos.filter(o => o !== k).forEach(o => { const p = r.nums[o]; r.nums[o] = { ...p, n, t, e, fp: e === 'p' ? (p.fp || Date.now()) : null }; fbPushNum(r, o); });
   save(); fbPushNum(r, k); closeModal(); renderDetalle();
   if (verBoleta || (e === 'p' && prev?.e !== 'p')) modalBoleta(k);
   else toast('Número ' + k + ' guardado ✅');
@@ -793,11 +809,20 @@ function wrapText(ctx, text, x, y, maxW, lh, maxLines = 2){
   if (line) lines.push(line); lines = lines.slice(0, maxLines);
   lines.forEach((l, i) => ctx.fillText(l, x, y + i * lh)); return lines.length * lh;
 }
-async function dibujarBoleta(r, k){
+async function dibujarBoleta(r, keys){
+  const ks = [].concat(keys).sort(); const n = ks.length;
   try{ await Promise.all(['500', '600', '700', '800'].map(w => document.fonts.load(`${w} 40px Inter`))); }catch(e){}
-  const v = r.nums[k]; const W = 1080, H = 1500;
-  const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
+  const v = r.nums[ks[0]];
   const F = (w, s) => `${w} ${s}px Inter, "Helvetica Neue", Arial, sans-serif`;
+  // distribución de los números
+  const W = 1080, cx = 70, cy = 255, cw = W - 140, gap = 22, areaW = cw - 120;
+  const perRow = n <= 3 ? n : Math.ceil(n / 2), rows = Math.ceil(n / perRow);
+  const singleW = Math.max(400, 130 * r.cifras + 140);
+  const boxW = n === 1 ? singleW : Math.min(singleW, (areaW - gap * (perRow - 1)) / perRow);
+  const boxH = n === 1 ? 220 : rows === 1 ? 200 : 150;
+  const hN = rows * boxH + (rows - 1) * gap, extra = Math.max(0, hN - 220);
+  const H = 1500 + extra, ch = 1120 + extra, cut = cy + 570 + extra;
+  const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
   const sp = (px) => { try{ x.letterSpacing = px + 'px'; }catch(e){} };
   // fondo
   x.fillStyle = '#0b1f4b'; x.fillRect(0, 0, W, H);
@@ -809,30 +834,39 @@ async function dibujarBoleta(r, k){
   x.textAlign = 'left'; x.fillStyle = '#ffffff'; x.fillText('Presta', sx, 145); x.fillStyle = '#1fbf6a'; x.fillText('Ya', sx + wP, 145);
   x.textAlign = 'center'; x.fillStyle = '#ffc83d'; x.font = F(700, 30); sp(6); x.fillText('BOLETA OFICIAL', W / 2, 205); sp(0);
   // tarjeta blanca
-  const cx = 70, cy = 255, cw = W - 140, ch = 1120, cut = cy + 570;
   x.fillStyle = '#ffffff'; roundRect(x, cx, cy, cw, ch, 40); x.fill();
   x.fillStyle = '#0b1f4b'; x.beginPath(); x.arc(cx, cut, 32, 0, 7); x.fill(); x.beginPath(); x.arc(cx + cw, cut, 32, 0, 7); x.fill();
   x.setLineDash([14, 12]); x.strokeStyle = '#d3dae6'; x.lineWidth = 3; x.beginPath(); x.moveTo(cx + 52, cut); x.lineTo(cx + cw - 52, cut); x.stroke(); x.setLineDash([]);
   // nombre de la rifa
   x.fillStyle = '#101a33'; x.font = F(700, 48); wrapText(x, r.nombre, W / 2, cy + 95, cw - 110, 58);
-  x.fillStyle = '#5b667f'; x.font = F(600, 26); sp(4); x.fillText('TU NÚMERO', W / 2, cy + 225); sp(0);
-  // número
-  const nw = Math.max(400, 130 * r.cifras + 140);
-  x.fillStyle = '#1fbf6a'; roundRect(x, W / 2 - nw / 2, cy + 250, nw, 220, 32); x.fill();
-  x.fillStyle = '#ffffff'; x.font = F(800, 168); sp(6); x.fillText(k, W / 2, cy + 422); sp(0);
+  x.fillStyle = '#5b667f'; x.font = F(600, 26); sp(4); x.fillText(n > 1 ? `TUS ${n} NÚMEROS` : 'TU NÚMERO', W / 2, cy + 225); sp(0);
+  // números
+  ks.forEach((k, i) => {
+    const row = Math.floor(i / perRow), col = i % perRow;
+    const inRow = Math.min(perRow, n - row * perRow), rowW = inRow * boxW + (inRow - 1) * gap;
+    const bx = W / 2 - rowW / 2 + col * (boxW + gap), by = cy + 250 + row * (boxH + gap);
+    x.fillStyle = '#1fbf6a'; roundRect(x, bx, by, boxW, boxH, n === 1 ? 32 : 26); x.fill();
+    let fs = n === 1 ? 168 : Math.round(boxH * 0.62), ls = n === 1 ? 6 : 3;
+    x.font = F(800, fs); sp(ls);
+    while (x.measureText(k).width > boxW - 40 && fs > 40){ fs -= 4; x.font = F(800, fs); }
+    x.fillStyle = '#ffffff'; x.fillText(k, bx + boxW / 2, by + boxH / 2 + fs * 0.36); sp(0);
+  });
   // estado
-  const pagado = v.e === 'p';
-  x.fillStyle = pagado ? '#e3f6ec' : '#fff3df'; roundRect(x, W / 2 - 140, cy + 495, 280, 52, 26); x.fill();
-  x.fillStyle = pagado ? '#11804a' : '#9a5a00'; x.font = F(700, 26); sp(2); x.fillText(pagado ? 'PAGADO' : 'APARTADO', W / 2, cy + 530); sp(0);
+  const pagados = ks.filter(k => r.nums[k].e === 'p').length;
+  const est = pagados === n ? ['PAGADO', '#e3f6ec', '#11804a'] : pagados === 0 ? ['APARTADO', '#fff3df', '#9a5a00'] : ['PAGO PARCIAL', '#fff3df', '#9a5a00'];
+  const sy = cy + 495 + extra, ew = est[0].length > 9 ? 340 : 280;
+  x.fillStyle = est[1]; roundRect(x, W / 2 - ew / 2, sy, ew, 52, 26); x.fill();
+  x.fillStyle = est[2]; x.font = F(700, 26); sp(2); x.fillText(est[0], W / 2, sy + 35); sp(0);
   // datos
-  const rows = [['Cliente', v.n], ['Teléfono', v.t], ['Premio', r.premio || '—'], ['Valor boleta', r.precio ? money(r.precio) : 'Gratis'], ['Juega con', r.loteria || 'Por definir'], ['Fecha del sorteo', fmtFechaCorta(r.fecha)]];
+  const rows2 = [['Cliente', v.n], ['Teléfono', v.t], ['Premio', r.premio || '—'],
+    [n > 1 ? 'Valor total' : 'Valor boleta', r.precio ? money(r.precio * n) : 'Gratis'], ['Juega con', r.loteria || 'Por definir'], ['Fecha del sorteo', fmtFechaCorta(r.fecha)]];
   let yy = cut + 78;
-  rows.forEach(([l, val], i) => {
+  rows2.forEach(([l, val], i) => {
     x.textAlign = 'left'; x.fillStyle = '#5b667f'; x.font = F(500, 30); x.fillText(l, cx + 60, yy);
     x.textAlign = 'right'; x.fillStyle = '#101a33'; x.font = F(600, 32);
     let t = String(val); while (x.measureText(t).width > cw - 400 && t.length > 4) t = t.slice(0, -2); if (t !== String(val)) t += '…';
     x.fillText(t, cx + cw - 60, yy);
-    if (i < rows.length - 1){ x.fillStyle = '#edf0f5'; x.fillRect(cx + 60, yy + 26, cw - 120, 2); }
+    if (i < rows2.length - 1){ x.fillStyle = '#edf0f5'; x.fillRect(cx + 60, yy + 26, cw - 120, 2); }
     yy += 70;
   });
   x.textAlign = 'center'; x.fillStyle = '#8a94a8'; x.font = F(500, 24);
@@ -842,16 +876,24 @@ async function dibujarBoleta(r, k){
   x.fillStyle = 'rgba(255,255,255,.65)'; x.font = F(500, 22); x.fillText('Conserva esta boleta, es tu comprobante de participación.', W / 2, H - 28);
   return c;
 }
-async function modalBoleta(k){
+async function modalBoleta(k, soloEste){
   const r = getRifa(UI.rifaId); const v = r.nums[k];
-  modal(`<h2>🎟️ Boleta ${k}</h2><div id="bPrev" class="muted" style="text-align:center;padding:30px">Generando boleta...</div>
+  const grupo = grupoCliente(r, k);
+  const ks = soloEste || grupo.length === 1 ? [k] : grupo;
+  modal(`<h2>🎟️ Boleta ${ks.join(' · ')}</h2>
+    ${grupo.length > 1 ? `<div class="seg" style="margin-bottom:12px">
+      <button type="button" class="${ks.length > 1 ? 'on' : ''}" onclick="modalBoleta('${k}', false)">Todos sus números<small>${grupo.join(', ')}</small></button>
+      <button type="button" class="${ks.length === 1 ? 'on' : ''}" onclick="modalBoleta('${k}', true)">Solo el ${k}<small>Una boleta</small></button>
+    </div>` : ''}
+    <div id="bPrev" class="muted" style="text-align:center;padding:30px">Generando boleta...</div>
     <button class="btn wa block" id="bShare">📤 Enviar boleta (imagen) a ${esc(v.n.split(' ')[0])}</button>
     <div class="row" style="margin-top:10px"><button class="btn navy" id="bText">💬 Abrir su chat</button><button class="btn ghost" id="bDown">⬇️ Descargar</button></div>
-    <p class="muted" style="font-size:11px;margin-top:10px">“Enviar boleta” abre el menú de compartir: elige WhatsApp y el chat de tu cliente. La boleta va acompañada solo del mensaje “¡Buena suerte! 🍀”.</p>`);
-  const canvas = await dibujarBoleta(r, k);
-  const img = new Image(); img.className = 'boleta-prev'; img.src = canvas.toDataURL('image/png');
-  $('#bPrev').replaceWith(img);
-  const fname = `Boleta_${k}_${r.nombre.replace(/[^\w]+/g, '_')}.png`;
+    <p class="muted" style="font-size:11px;margin-top:10px">“Enviar boleta” abre el menú de compartir: elige WhatsApp y el chat de tu cliente. La boleta va acompañada solo del mensaje “¡Buena suerte! 🍀”.</p>`,
+    null, () => modalNumero(k));
+  const canvas = await dibujarBoleta(r, ks);
+  const img = new Image(); img.className = 'boleta-prev'; img.alt = 'Boleta ' + ks.join(', '); img.src = canvas.toDataURL('image/png');
+  const prev = $('#bPrev'); if (!prev) return; prev.replaceWith(img);
+  const fname = `Boleta_${ks.join('-')}_${r.nombre.replace(/[^\w]+/g, '_')}.png`;
   const texto = '¡Buena suerte! 🍀';
   $('#bDown').onclick = () => { const a = document.createElement('a'); a.download = fname; a.href = img.src; a.click(); };
   $('#bText').onclick = () => openWA(v.t, texto);
