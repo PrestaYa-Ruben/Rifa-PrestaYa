@@ -219,7 +219,7 @@ h3{font-size:15px;font-weight:700}
 /* =========================================================
    RIFAS PRESTAYA  ·  v1.0
    ========================================================= */
-const VERSION = 'v1.7';
+const VERSION = 'v1.8';
 const DEFAULT_WA = '573162685282';
 const KEY = 'rifasPY_data_v1';
 const KEY_CFG = 'rifasPY_cfg_v1';
@@ -425,7 +425,7 @@ async function fbReq(base, path, method = 'GET', body){
   if (!r.ok) throw new Error('HTTP ' + r.status);
   return r.json();
 }
-const fbVal = v => ({ n: v.n, t: v.t, e: v.e, f: v.f || Date.now() });
+const fbVal = v => ({ n: v.n, t: v.t, e: v.e, f: v.f || Date.now(), tk: v.tk || '' });
 function fbPushNum(r, k){
   if (!fbBase()) return; const v = r.nums[k];
   (v ? fbReq(fbBase(), `/rifasPY/${r.id}/nums/n${k}`, 'PUT', fbVal(v)) : fbReq(fbBase(), `/rifasPY/${r.id}/nums/n${k}`, 'DELETE')).catch(() => toast('Sin conexión: el cambio se enviará al sincronizar'));
@@ -438,7 +438,7 @@ async function syncAdmin(r, rerender){
     const nuevos = [];
     Object.entries(remote).forEach(([rk, v]) => {
       const k = rk.replace(/^n/, '');
-      if (!r.nums[k] && v && v.n){ r.nums[k] = { n: v.n, t: v.t, e: 'r', f: v.f || Date.now(), cod: 'PY-' + uid().toUpperCase().slice(0, 6), web: 1 }; nuevos.push(k); }
+      if (!r.nums[k] && v && v.n){ r.nums[k] = { n: v.n, t: v.t, e: 'r', f: v.f || Date.now(), cod: 'PY-' + uid().toUpperCase().slice(0, 6), tk: v.tk || nuevoTurno(), web: 1 }; nuevos.push(k); }
     });
     const subir = {}; Object.entries(r.nums).forEach(([k, v]) => subir['n' + k] = fbVal(v));
     if (Object.keys(subir).length) await fbReq(fbBase(), `/rifasPY/${r.id}/nums`, 'PATCH', subir);
@@ -564,9 +564,12 @@ function borrarRifa(id){
   });
 }
 
+const nuevoTurno = () => Math.random().toString(36).slice(2, 8);
+/* Números del mismo turno (misma participación). Datos antiguos sin turno: se agrupan por teléfono. */
 function grupoCliente(r, k){
   const v = r.nums[k]; if (!v) return [k];
-  const t = waNum(v.t); return Object.keys(r.nums).filter(x => waNum(r.nums[x].t) === t).sort();
+  if (v.tk) return Object.keys(r.nums).filter(x => r.nums[x].tk === v.tk).sort();
+  const t = waNum(v.t); return Object.keys(r.nums).filter(x => !r.nums[x].tk && waNum(r.nums[x].t) === t).sort();
 }
 function modalNumero(k){
   const r = getRifa(UI.rifaId); const v = r.nums[k] || { n: '', t: '', e: 'r' };
@@ -592,7 +595,7 @@ function modalNumero(k){
         <button type="button" data-e="p" class="${v.e === 'p' ? 'on' : ''}">🟢 Pagado<small>Confirmado</small></button>
       </div>
     </div>
-    ${grupo.length > 1 ? `<label class="chk"><input type="checkbox" id="nAll" checked><span>Aplicar este estado a todos sus números: <b>${grupo.join(', ')}</b></span></label>` : ''}
+    ${grupo.length > 1 ? `<label class="chk"><input type="checkbox" id="nAll" checked><span>Aplicar este estado a todos los números de este turno: <b>${grupo.join(', ')}</b></span></label>` : ''}
     <button class="btn block" onclick="guardarNumero('${k}')">💾 Guardar</button>
     ${!libre ? `
       <div class="row" style="margin-top:10px">
@@ -652,7 +655,7 @@ function guardarNumero(k, verBoleta){
   const e = document.querySelector('#nEst button.on').dataset.e;
   const prev = r.nums[k];
   const todos = $('#nAll')?.checked ? grupoCliente(r, k) : [k];
-  r.nums[k] = { n, t, e, f: prev?.f || Date.now(), fp: e === 'p' ? (prev?.fp || Date.now()) : null, cod: prev?.cod || ('PY-' + uid().toUpperCase().slice(0, 6)) };
+  r.nums[k] = { n, t, e, f: prev?.f || Date.now(), fp: e === 'p' ? (prev?.fp || Date.now()) : null, cod: prev?.cod || ('PY-' + uid().toUpperCase().slice(0, 6)), tk: prev?.tk || nuevoTurno() };
   todos.filter(o => o !== k).forEach(o => { const p = r.nums[o]; r.nums[o] = { ...p, n, t, e, fp: e === 'p' ? (p.fp || Date.now()) : null }; fbPushNum(r, o); });
   save(); fbPushNum(r, k); closeModal(); renderDetalle();
   if (verBoleta || (e === 'p' && prev?.e !== 'p')) modalBoleta(k);
@@ -702,13 +705,14 @@ function procesarPegado(){
   registrarReserva(r, d);
 }
 function registrarReserva(r, d){
+  const turno = nuevoTurno();
   if (!d.nums.length || !d.n) return toast('No se reconoció el mensaje. Regístralo manualmente.');
   const ok = [], ocupados = [];
   d.nums.forEach(raw => {
     const k = pad(raw.replace(/\D/g, ''), r.cifras); if (k.length !== r.cifras) return;
     const prev = r.nums[k];
     if (prev && waNum(prev.t) !== waNum(d.t)) ocupados.push(k);
-    else { r.nums[k] = { n: d.n, t: d.t, e: prev?.e || 'r', f: prev?.f || Date.now(), cod: prev?.cod || ('PY-' + uid().toUpperCase().slice(0, 6)) }; ok.push(k); }
+    else { r.nums[k] = { n: d.n, t: d.t, e: prev?.e || 'r', f: prev?.f || Date.now(), cod: prev?.cod || ('PY-' + uid().toUpperCase().slice(0, 6)), tk: prev?.tk || turno }; ok.push(k); }
   });
   save(); syncAdmin(r, false); closeModal(); UI.tab = 'part'; renderDetalle();
   if (ocupados.length) showMsg(`Estos números ya estaban ocupados por otra persona y <b>NO</b> se registraron: <b>${ocupados.join(', ')}</b><br><br>Avísale al cliente para que elija otros.`);
@@ -731,11 +735,11 @@ const baseURL = () => location.origin + location.pathname.replace(/index\.html$/
 /* Enlace compacto: campos separados por ~ (sin JSON ni base64) */
 const encF = v => encodeURIComponent(String(v ?? '')).replace(/~/g, '%7E').replace(/%20/g, '+');
 const decF = v => { try{ return decodeURIComponent(String(v || '').replace(/\+/g, ' ')); }catch(e){ return v; } };
-function compactRifa(r, opp){
+function compactRifa(r, opp, tok){
   const taken = Object.keys(r.nums).map(Number);
   const sp = sparseEncode(taken.slice()), bs = bitsetEncode(taken, total(r));
   const tk = taken.length ? (sp.length <= bs.length ? 's' + sp : 'b' + bs) : '';
-  const f = [r.id, r.cifras, opp ?? (r.max || ''), r.precio || '', (r.fecha || '').replace(/-/g, ''), r.nombre, r.premio, r.loteria, r.desc, r.pago, waNum(CFG.wa) === DEFAULT_WA ? '' : CFG.wa, tk].map(encF);
+  const f = [r.id, r.cifras, opp ?? (r.max || ''), r.precio || '', (r.fecha || '').replace(/-/g, ''), r.nombre, r.premio, r.loteria, r.desc, r.pago, waNum(CFG.wa) === DEFAULT_WA ? '' : CFG.wa, tk, tok || ''].map(encF);
   while (f.length && f[f.length - 1] === '') f.pop();
   return f.join('~');
 }
@@ -744,6 +748,7 @@ function decodeCompact(str){
   const o = { i: f[0], c: +f[1], m: +f[2] || 0, v: +f[3] || 0, n: f[5] || '', p: f[6] || '', l: f[7] || '', d: f[8] || '', g: f[9] || '', w: f[10] || DEFAULT_WA };
   if (f[4] && f[4].length === 8) o.f = f[4].slice(0, 4) + '-' + f[4].slice(4, 6) + '-' + f[4].slice(6);
   const tk = f[11] || ''; if (tk[0] === 's') o.s = tk.slice(1); else if (tk[0] === 'b') o.b = tk.slice(1);
+  if (f[12]) o.tk = f[12];
   return o;
 }
 function fbCode(){ // dirección de Firebase resumida para el enlace
@@ -758,14 +763,14 @@ function fbFromCode(c){
   if (c.includes('-default-rtdb') || c.includes('.')) return 'https://' + (c.includes('.') ? c : c + '.firebaseio.com'); // enlaces v1.3
   return 'https://' + c + '-default-rtdb.firebaseio.com';
 }
-function linkRifa(r, opp){
-  if (fbBase()) return baseURL() + '#' + fbCode() + '~' + r.id + (opp != null ? '~' + opp : '');
-  return baseURL() + '#=' + compactRifa(r, opp);
+function linkRifa(r, opp, tok){
+  if (fbBase()) return baseURL() + '#' + fbCode() + '~' + r.id + '~' + (opp ?? '') + (tok ? '~' + tok : '');
+  return baseURL() + '#=' + compactRifa(r, opp, tok);
 }
 function fbPushCfg(r){ if (fbBase()) return fbReq(fbBase(), `/rifasPY/${r.id}/cfg`, 'PUT', cfgRifa(r)).catch(() => {}); }
 function modalCompartir(){
   const r = getRifa(UI.rifaId); syncAdmin(r, false); fbPushCfg(r);
-  let opp = r.max || 1;
+  let opp = r.max || 1, tok = nuevoTurno();
   modal(`
     <h2>🔗 Compartir rifa</h2>
     <p class="muted">Tu cliente abre el enlace, elige su número y te envía sus datos a tu WhatsApp <b>+${esc(CFG.wa)}</b>.</p>
@@ -774,6 +779,7 @@ function modalCompartir(){
       <p class="muted" style="font-size:11px;margin-top:5px">El cliente que abra este enlace podrá elegir esa cantidad de números.</p>
     </div>
     <div class="linkbox" id="shLink"></div>
+    <p class="muted" style="font-size:11px;margin:-4px 0 10px">🔄 Cada enlace es una participación nueva: el mismo cliente puede volver a jugar con otro enlace. <a href="#" id="shNew" style="color:var(--navy3);font-weight:700">Generar otro enlace</a></p>
     <button class="btn wa block" id="shWA">💬 Compartir por WhatsApp</button>
     <div class="row" style="margin-top:10px">
       <button class="btn navy" id="shCopy">📋 Copiar enlace</button>
@@ -783,17 +789,18 @@ function modalCompartir(){
     ${fbBase() ? `<div class="note" style="background:#e2f7ec;border-color:var(--green);color:#0d6b3b">🟢 <b>Conexión en vivo activa.</b> Cuando un cliente aparta un número, queda bloqueado al instante para todos y te aparece aquí solo.</div>`
   : `<div class="note">💡 Sin conexión en vivo, el enlace muestra los números ocupados <b>al momento de compartir</b>. Para que se bloqueen al instante para todos y el enlace sea aún más corto, activa la <b>Conexión en vivo</b> en ⚙️ Ajustes.</div>`}
   `);
-  const url = () => linkRifa(r, opp);
+  const url = () => linkRifa(r, opp, tok);
   const msg = () => `👉 Elige tu número favorito aquí:\n${url()}`;
   const pinta = () => { $('#shLink').textContent = url(); };
   pinta();
+  $('#shNew').onclick = e => { e.preventDefault(); tok = nuevoTurno(); pinta(); toast('Enlace nuevo creado 🔄'); };
   document.querySelectorAll('#shOpp button').forEach(b => b.onclick = () => {
     document.querySelectorAll('#shOpp button').forEach(x => x.classList.remove('on')); b.classList.add('on'); opp = +b.dataset.o; pinta();
   });
   $('#shWA').onclick = () => openURL('https://wa.me/?text=' + encodeURIComponent(msg()));
   $('#shCopy').onclick = () => copiar(url());
   $('#shMore').onclick = () => navigator.share ? navigator.share({ text: '👉 Elige tu número favorito aquí:', url: url() }).catch(() => {}) : copiar(msg());
-  $('#shPrev').onclick = () => verComoCliente(opp);
+  $('#shPrev').onclick = () => verComoCliente(opp, tok);
 }
 function copiar(t){
   if (navigator.clipboard) navigator.clipboard.writeText(t).then(() => toast('Copiado ✅')).catch(() => fallbackCopy(t));
@@ -882,7 +889,7 @@ async function modalBoleta(k, soloEste){
   const ks = soloEste || grupo.length === 1 ? [k] : grupo;
   modal(`<h2>🎟️ Boleta ${ks.join(' · ')}</h2>
     ${grupo.length > 1 ? `<div class="seg" style="margin-bottom:12px">
-      <button type="button" class="${ks.length > 1 ? 'on' : ''}" onclick="modalBoleta('${k}', false)">Todos sus números<small>${grupo.join(', ')}</small></button>
+      <button type="button" class="${ks.length > 1 ? 'on' : ''}" onclick="modalBoleta('${k}', false)">Todo este turno<small>${grupo.join(', ')}</small></button>
       <button type="button" class="${ks.length === 1 ? 'on' : ''}" onclick="modalBoleta('${k}', true)">Solo el ${k}<small>Una boleta</small></button>
     </div>` : ''}
     <div id="bPrev" class="muted" style="text-align:center;padding:30px">Generando boleta...</div>
@@ -972,10 +979,10 @@ function exportCSV(){
    CLIENTE
    ========================================================= */
 let C = null; const CSEL = new Set(); let PREVIEW = false;
-function verComoCliente(opp){
+function verComoCliente(opp, tok){
   const raw = payloadRifa(getRifa(UI.rifaId));
   closeModal(); PREVIEW = true; CSEL.clear();
-  $('#admin').classList.add('hidden'); initCliente(raw, opp); window.scrollTo(0, 0);
+  $('#admin').classList.add('hidden'); initCliente(raw, opp, tok); window.scrollTo(0, 0);
 }
 function salirPreview(){
   PREVIEW = false; CSEL.clear(); closeModal();
@@ -987,21 +994,23 @@ let C_TIMER = null;
 async function initClienteFB(code){
   const el = $('#cliente'); el.classList.remove('hidden');
   el.innerHTML = `<div class="wrap"><div class="card empty" style="margin-top:60px"><div class="big">🎟️</div><h2>Cargando rifa…</h2></div></div>`;
-  const [fc, id, opp] = code.split('~'); const u = fbFromCode(fc || '');
+  const [fc, id, opp, tok] = code.split('~'); const u = fbFromCode(fc || '');
   try{
     const cfg = await fbReq(u, `/rifasPY/${id}/cfg`);
     if (!cfg || !cfg.c) throw 0;
-    initCliente(b64urlEncode(JSON.stringify({ ...cfg, i: id, u })), opp);
+    initCliente(b64urlEncode(JSON.stringify({ ...cfg, i: id, u, tk: tok })), opp);
   }catch(e){
     el.innerHTML = `<div class="wrap"><div class="card empty" style="margin-top:40px"><div class="big">📶</div><h2>No se pudo cargar la rifa</h2><p class="muted" style="margin:8px 0 16px">Revisa tu conexión a internet e inténtalo de nuevo.</p><button class="btn block" onclick="location.reload()">Reintentar</button></div></div>`;
   }
 }
-function initCliente(raw, opp){
+function initCliente(raw, opp, tok){
   try{ C = JSON.parse(b64urlDecode(raw)); }catch(e){ C = null; }
   if (C && opp != null && opp !== '') C.m = Math.min(+opp || 0, MAX_SEL);
+  if (C && tok) C.tk = tok;
   const el = $('#cliente'); el.classList.remove('hidden');
   if (!C || !C.c){ el.innerHTML = `<div class="wrap"><div class="card empty" style="margin-top:40px"><div class="big">😕</div><h2>Enlace no válido</h2><p class="muted">Pide a PrestaYa que te envíe nuevamente el enlace de la rifa.</p></div></div>`; return; }
   C.size = Math.pow(10, C.c); C.taken = C.s != null ? sparseDecode(C.s) : bitsetDecode(C.b, C.size); C.soloLibres = false;
+  if (!PREVIEW){ const mm = minesGet(), mk = mineKey(); Object.keys(mm).forEach(key => { if ((key === C.i || key.startsWith(C.i + ':')) && key !== mk) mm[key].forEach(k => C.taken.add(+k)); }); }
   document.title = C.n + ' · Rifas PrestaYa';
   renderCliente();
   clearInterval(C_TIMER);
@@ -1010,7 +1019,8 @@ function initCliente(raw, opp){
 function cTaken(k){ return C.taken.has(+k); }
 const cMax = () => C.m || MAX_SEL;
 const cUsados = () => cMine().length + CSEL.size;
-function cMine(){ return PREVIEW ? [] : (minesGet()[C.i] || []); }
+const mineKey = () => C.i + (C.tk ? ':' + C.tk : '');
+function cMine(){ return PREVIEW ? [] : (minesGet()[mineKey()] || []); }
 function cellCls(k, mineSet){ return mineSet.has(k) ? 'mine' : cTaken(k) ? 'x' : CSEL.has(k) ? 'sel' : ''; }
 function updateCell(k){
   const b = document.querySelector(`#cGrid [data-k="${k}"]`); if (!b) return;
@@ -1058,7 +1068,7 @@ function renderCliente(){
           <div><span>💵 Valor boleta</span><b>${C.v ? money(C.v) : 'Gratis'}</b></div>
           <div><span>📅 Fecha sorteo</span><b>${fmtFechaCorta(C.f)}</b></div>
           <div><span>🎲 Juega con</span><b>${esc(C.l || 'Por definir')}</b></div>
-          <div><span>🎁 Participación</span><b>Rifa gratuita</b></div>
+          <div><span>🎁 Participación</span><b>Gratuita</b></div>
         </div>
         ${C.m ? `<p style="margin-top:12px;font-size:13px;font-weight:600;color:var(--navy3)">🎟️ Tienes ${C.m} oportunidad${C.m > 1 ? 'es' : ''}: elige ${C.m === 1 ? 'tu número' : C.m + ' números'}</p>` : ''}
         ${C.d ? `<p class="muted" style="margin-top:12px">📌 ${esc(C.d)}</p>` : ''}
@@ -1153,31 +1163,31 @@ async function cEnviar(){
     try{
       const d = await fetch(`${C.u}/rifasPY/${C.i}/nums.json`, { cache: 'no-store' }).then(r => { if (!r.ok) throw 0; return r.json(); }) || {};
       if (C.m){
-        const tiene = Object.values(d).filter(v => v && waNum(v.t) === waNum(t)).length;
-        if (tiene + nums.length > C.m){ closeModal(); return showMsg(`Este teléfono ya tiene <b>${tiene}</b> número${tiene === 1 ? '' : 's'} en esta rifa. El máximo es <b>${C.m}</b> oportunidad${C.m > 1 ? 'es' : ''}.`); }
+        const tiene = Object.values(d).filter(v => v && (C.tk ? v.tk === C.tk : waNum(v.t) === waNum(t))).length;
+        if (tiene + nums.length > C.m){ closeModal(); return showMsg(`Ya usaste las oportunidades de este enlace (<b>${C.m}</b>). Pide a PrestaYa un enlace nuevo para volver a participar.`); }
       }
       const ocup = nums.filter(k => d['n' + k]);
       if (ocup.length){
         ocup.forEach(k => { CSEL.delete(k); C.taken.add(+k); updateCell(k); }); updateCount(); renderSelBar();
         return showMsg(`⛔ Lo sentimos, ${ocup.length > 1 ? 'los números' : 'el número'} <b>${ocup.join(', ')}</b> ya ${ocup.length > 1 ? 'fueron apartados' : 'fue apartado'} por otra persona hace un momento.<br><br>${CSEL.size ? 'Tus otros números siguen seleccionados.' : 'Elige otro número.'}`);
       }
-      const body = {}; nums.forEach(k => body['n' + k] = { n, t, e: 'r', f: Date.now() });
+      const turno = C.tk || nuevoTurno(); const body = {}; nums.forEach(k => body['n' + k] = { n, t, e: 'r', f: Date.now(), tk: turno });
       await fetch(`${C.u}/rifasPY/${C.i}/nums.json`, { method: 'PATCH', body: JSON.stringify(body) });
     }catch(e){ /* sin conexión: la reserva sigue por WhatsApp */ }
   }
   if (PREVIEW && C.m){
-    const r = getRifa(C.i); const tiene = r ? Object.values(r.nums).filter(v => waNum(v.t) === waNum(t)).length : 0;
-    if (tiene + nums.length > C.m){ closeModal(); return showMsg(`Este teléfono ya tiene <b>${tiene}</b> número${tiene === 1 ? '' : 's'} en esta rifa. El máximo por cliente es <b>${C.m}</b>.`); }
+    const r = getRifa(C.i); const tiene = r ? Object.values(r.nums).filter(v => C.tk ? v.tk === C.tk : waNum(v.t) === waNum(t)).length : 0;
+    if (tiene + nums.length > C.m){ closeModal(); return showMsg(`Ya usaste las oportunidades de este enlace (<b>${C.m}</b>). Pide a PrestaYa un enlace nuevo para volver a participar.`); }
   }
   if (PREVIEW){
     // En la vista previa se simula la reserva en vivo: queda registrada en el panel
     const r = getRifa(C.i);
-    if (r){ nums.forEach(k => { if (!r.nums[k]) r.nums[k] = { n, t, e: 'r', f: Date.now(), cod: 'PY-' + uid().toUpperCase().slice(0, 6), web: 1 }; }); save(); }
+    if (r){ const turno = C.tk || nuevoTurno(); nums.forEach(k => { if (!r.nums[k]) r.nums[k] = { n, t, e: 'r', f: Date.now(), cod: 'PY-' + uid().toUpperCase().slice(0, 6), tk: turno, web: 1 }; }); save(); }
   } else {
-    const m = minesGet(); m[C.i] = [...new Set([...(m[C.i] || []), ...nums])].sort(); ls.set(KEY_MINE, m);
+    const m = minesGet(), mk = mineKey(); m[mk] = [...new Set([...(m[mk] || []), ...nums])].sort(); ls.set(KEY_MINE, m);
   }
   nums.forEach(k => C.taken.add(+k));
-  CSEL.clear();
+  CSEL.clear(); nums.forEach(updateCell); renderSelBar();
   const msg = `🎟️ *NUEVA RESERVA - RIFA PRESTAYA*\n\n*Rifa:* ${C.n}\n*Número(s):* ${nums.join(', ')}\n*Nombre:* ${n}\n*Teléfono:* ${t}${C.v ? '\n*Valor:* ' + money(C.v * nums.length) : ''}`;
   const waUrl = 'https://wa.me/' + waNum(C.w || DEFAULT_WA) + '?text=' + encodeURIComponent(msg);
   if (!live) openURL(waUrl);
