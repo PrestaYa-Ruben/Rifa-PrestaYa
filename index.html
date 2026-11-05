@@ -221,7 +221,7 @@ h3{font-size:15px;font-weight:700}
 /* =========================================================
    RIFAS PRESTAYA  ·  v1.0
    ========================================================= */
-const VERSION = 'v1.9';
+const VERSION = 'v2.0';
 const DEFAULT_WA = '573162685282';
 const KEY = 'rifasPY_data_v1';
 const KEY_CFG = 'rifasPY_cfg_v1';
@@ -820,70 +820,102 @@ function wrapText(ctx, text, x, y, maxW, lh, maxLines = 2){
 }
 async function dibujarBoleta(r, keys){
   const ks = [].concat(keys).sort(); const n = ks.length;
-  try{ await Promise.all(['500', '600', '700', '800'].map(w => document.fonts.load(`${w} 40px Inter`))); }catch(e){}
+  try{ await Promise.all(['400', '500', '600', '700', '800'].map(w => document.fonts.load(`${w} 40px Inter`))); }catch(e){}
   const v = r.nums[ks[0]];
   const F = (w, s) => `${w} ${s}px Inter, "Helvetica Neue", Arial, sans-serif`;
-  // distribución de los números
-  const W = 1080, cx = 70, cy = 255, cw = W - 140, gap = 22, areaW = cw - 120;
+  const W = 1080, cx = 69, cw = 943, cy = 228;
+  // ---- medidas de los números (1 o varios)
+  const gap = 22, areaW = cw - 120;
   const perRow = n <= 3 ? n : Math.ceil(n / 2), rows = Math.ceil(n / perRow);
-  const singleW = Math.max(400, 130 * r.cifras + 140);
+  const singleW = Math.max(530, 140 * r.cifras + 110);
   const boxW = n === 1 ? singleW : Math.min(singleW, (areaW - gap * (perRow - 1)) / perRow);
-  const boxH = n === 1 ? 220 : rows === 1 ? 200 : 150;
-  const hN = rows * boxH + (rows - 1) * gap, extra = Math.max(0, hN - 220);
-  const H = 1500 + extra, ch = 1120 + extra, cut = cy + 570 + extra;
+  const boxH = n === 1 ? 212 : rows === 1 ? 190 : 150;
+  const hN = rows * boxH + (rows - 1) * gap;
+  // ---- título (se ajusta al ancho; si no cabe, dos líneas)
+  const mc = document.createElement('canvas').getContext('2d');
+  let tSize = 86; mc.font = F(800, tSize);
+  while (mc.measureText(r.nombre).width > cw - 110 && tSize > 60){ tSize -= 2; mc.font = F(800, tSize); }
+  const tLines = mc.measureText(r.nombre).width > cw - 110 ? 2 : 1;
+  const extraT = (tLines - 1) * (tSize + 8);
+  const extra = Math.max(0, hN - 212) + extraT;
+  const H = 1448 + extra, ch = 1089 + extra, cut = 781 + extra;
   const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
   const sp = (px) => { try{ x.letterSpacing = px + 'px'; }catch(e){} };
-  // fondo
-  x.fillStyle = '#0b1f4b'; x.fillRect(0, 0, W, H);
-  x.fillStyle = 'rgba(31,191,106,.14)'; x.beginPath(); x.arc(W - 20, 40, 240, 0, 7); x.fill();
-  x.fillStyle = 'rgba(255,200,61,.10)'; x.beginPath(); x.arc(40, H - 60, 200, 0, 7); x.fill();
-  // marca
-  x.textBaseline = 'alphabetic'; x.font = F(800, 88); sp(0);
-  const wP = x.measureText('Presta').width, wY = x.measureText('Ya').width, sx = W / 2 - (wP + wY) / 2;
-  x.textAlign = 'left'; x.fillStyle = '#ffffff'; x.fillText('Presta', sx, 145); x.fillStyle = '#1fbf6a'; x.fillText('Ya', sx + wP, 145);
-  x.textAlign = 'center'; x.fillStyle = '#ffc83d'; x.font = F(700, 30); sp(6); x.fillText('BOLETA OFICIAL', W / 2, 205); sp(0);
-  // tarjeta blanca
-  x.fillStyle = '#ffffff'; roundRect(x, cx, cy, cw, ch, 40); x.fill();
-  x.fillStyle = '#0b1f4b'; x.beginPath(); x.arc(cx, cut, 32, 0, 7); x.fill(); x.beginPath(); x.arc(cx + cw, cut, 32, 0, 7); x.fill();
-  x.setLineDash([14, 12]); x.strokeStyle = '#d3dae6'; x.lineWidth = 3; x.beginPath(); x.moveTo(cx + 52, cut); x.lineTo(cx + cw - 52, cut); x.stroke(); x.setLineDash([]);
-  // nombre de la rifa
-  x.fillStyle = '#101a33'; x.font = F(700, 48); wrapText(x, r.nombre, W / 2, cy + 95, cw - 110, 58);
-  x.fillStyle = '#5b667f'; x.font = F(600, 26); sp(4); x.fillText(n > 1 ? `TUS ${n} NÚMEROS` : 'TU NÚMERO', W / 2, cy + 225); sp(0);
-  // números
+  const shadow = (blur, oy, col) => { x.shadowColor = col; x.shadowBlur = blur; x.shadowOffsetX = 0; x.shadowOffsetY = oy; };
+  const noShadow = () => { x.shadowColor = 'transparent'; x.shadowBlur = 0; x.shadowOffsetY = 0; };
+  // ---- fondo gris claro
+  const bg = x.createLinearGradient(0, 0, 0, H); bg.addColorStop(0, '#eef0f3'); bg.addColorStop(1, '#e6e8ec');
+  x.fillStyle = bg; x.fillRect(0, 0, W, H);
+  // ---- marca
+  x.textBaseline = 'alphabetic'; x.font = F(800, 84); sp(-1);
+  const wP = x.measureText('Presta').width, wY = x.measureText('Ya').width, sx = W / 2 - (wP + wY + 6) / 2;
+  shadow(10, 4, 'rgba(15,30,70,.18)');
+  x.textAlign = 'left'; x.fillStyle = '#12306b'; x.fillText('Presta', sx, 122);
+  x.fillStyle = '#2fb36a'; x.fillText('Ya', sx + wP + 6, 122); noShadow(); sp(0);
+  x.textAlign = 'center'; x.fillStyle = '#2b2f38'; x.font = F(700, 31); sp(8); x.fillText('BOLETA OFICIAL', W / 2 + 4, 182); sp(0);
+  // ---- tarjeta blanca con sombra suave y muescas
+  shadow(50, 18, 'rgba(20,30,60,.14)');
+  x.fillStyle = '#ffffff'; roundRect(x, cx, cy, cw, ch, 42); x.fill(); noShadow();
+  const cg = x.createLinearGradient(0, cy, 0, cy + ch); cg.addColorStop(0, '#ffffff'); cg.addColorStop(1, '#f4f6f9');
+  x.fillStyle = cg; roundRect(x, cx, cy, cw, ch, 42); x.fill();
+  x.fillStyle = '#eaecf0'; x.beginPath(); x.arc(cx - 2, cut, 31, 0, 7); x.fill(); x.beginPath(); x.arc(cx + cw + 2, cut, 31, 0, 7); x.fill();
+  x.setLineDash([16, 12]); x.strokeStyle = '#c9ceda'; x.lineWidth = 2.5; x.beginPath(); x.moveTo(cx + 52, cut); x.lineTo(cx + cw - 52, cut); x.stroke(); x.setLineDash([]);
+  // ---- nombre de la rifa
+  x.fillStyle = '#1e2026'; x.font = F(800, tSize); sp(-1);
+  if (tLines === 1) x.fillText(r.nombre, W / 2, 362);
+  else wrapText(x, r.nombre, W / 2, 362 - 4, cw - 110, tSize + 8);
+  sp(0);
+  x.fillStyle = '#2a3550'; x.font = F(500, 29); sp(6); x.fillText(n > 1 ? `TUS ${n} NÚMEROS` : 'TU NÚMERO', W / 2 + 3, 449 + extraT); sp(0);
+  // ---- números (caja verde con relieve)
   ks.forEach((k, i) => {
     const row = Math.floor(i / perRow), col = i % perRow;
     const inRow = Math.min(perRow, n - row * perRow), rowW = inRow * boxW + (inRow - 1) * gap;
-    const bx = W / 2 - rowW / 2 + col * (boxW + gap), by = cy + 250 + row * (boxH + gap);
-    x.fillStyle = '#1fbf6a'; roundRect(x, bx, by, boxW, boxH, n === 1 ? 32 : 26); x.fill();
-    let fs = n === 1 ? 168 : Math.round(boxH * 0.62), ls = n === 1 ? 6 : 3;
-    x.font = F(800, fs); sp(ls);
-    while (x.measureText(k).width > boxW - 40 && fs > 40){ fs -= 4; x.font = F(800, fs); }
-    x.fillStyle = '#ffffff'; x.fillText(k, bx + boxW / 2, by + boxH / 2 + fs * 0.36); sp(0);
+    const bx = W / 2 - rowW / 2 + col * (boxW + gap), by = 472 + extraT + row * (boxH + gap);
+    const rad = n === 1 ? 30 : 24;
+    shadow(30, 14, 'rgba(30,120,70,.30)');
+    const g = x.createLinearGradient(0, by, 0, by + boxH); g.addColorStop(0, '#45c07c'); g.addColorStop(1, '#2fa463');
+    x.fillStyle = g; roundRect(x, bx, by, boxW, boxH, rad); x.fill(); noShadow();
+    // brillo superior y borde inferior
+    const hl = x.createLinearGradient(0, by, 0, by + boxH * .45); hl.addColorStop(0, 'rgba(255,255,255,.28)'); hl.addColorStop(1, 'rgba(255,255,255,0)');
+    x.fillStyle = hl; roundRect(x, bx + 3, by + 3, boxW - 6, boxH * .45, rad - 3); x.fill();
+    x.strokeStyle = 'rgba(0,70,30,.18)'; x.lineWidth = 3; roundRect(x, bx + 1.5, by + 1.5, boxW - 3, boxH - 3, rad); x.stroke();
+    let fs = n === 1 ? 172 : Math.round(boxH * 0.6);
+    x.font = F(800, fs); sp(n === 1 ? 2 : 1);
+    while (x.measureText(k).width > boxW - 50 && fs > 40){ fs -= 4; x.font = F(800, fs); }
+    x.fillStyle = 'rgba(0,60,25,.28)'; x.fillText(k, bx + boxW / 2 + 3, by + boxH / 2 + fs * 0.36 + 6);
+    shadow(4, 2, 'rgba(0,50,20,.25)');
+    x.fillStyle = '#ffffff'; x.fillText(k, bx + boxW / 2, by + boxH / 2 + fs * 0.36); noShadow(); sp(0);
   });
-  // estado
+  // ---- estado
   const pagados = ks.filter(k => r.nums[k].e === 'p').length;
-  const est = pagados === n ? ['PAGADO', '#e3f6ec', '#11804a'] : pagados === 0 ? ['APARTADO', '#fff3df', '#9a5a00'] : ['PAGO PARCIAL', '#fff3df', '#9a5a00'];
-  const sy = cy + 495 + extra, ew = est[0].length > 9 ? 340 : 280;
-  x.fillStyle = est[1]; roundRect(x, W / 2 - ew / 2, sy, ew, 52, 26); x.fill();
-  x.fillStyle = est[2]; x.font = F(700, 26); sp(2); x.fillText(est[0], W / 2, sy + 35); sp(0);
-  // datos
-  const rows2 = [['Cliente', v.n], ['Teléfono', v.t], ['Premio', r.premio || '—'],
-    [n > 1 ? 'Valor total' : 'Valor boleta', r.precio ? money(r.precio * n) : 'Gratis'], ['Juega con', r.loteria || 'Por definir'], ['Fecha del sorteo', fmtFechaCorta(r.fecha)]];
-  let yy = cut + 78;
-  rows2.forEach(([l, val], i) => {
-    x.textAlign = 'left'; x.fillStyle = '#5b667f'; x.font = F(500, 30); x.fillText(l, cx + 60, yy);
-    x.textAlign = 'right'; x.fillStyle = '#101a33'; x.font = F(600, 32);
-    let t = String(val); while (x.measureText(t).width > cw - 400 && t.length > 4) t = t.slice(0, -2); if (t !== String(val)) t += '…';
-    x.fillText(t, cx + cw - 60, yy);
-    if (i < rows2.length - 1){ x.fillStyle = '#edf0f5'; x.fillRect(cx + 60, yy + 26, cw - 120, 2); }
-    yy += 70;
+  const est = pagados === n ? ['PAGADO', '#dcf3e5', '#1e8a4f'] : pagados === 0 ? ['APARTADO', '#fff0d4', '#a8660a'] : ['PAGO PARCIAL', '#fff0d4', '#a8660a'];
+  const sy = 710 + extra, ew = est[0].length > 9 ? 340 : 281;
+  x.fillStyle = est[1]; roundRect(x, W / 2 - ew / 2, sy, ew, 50, 25); x.fill();
+  x.fillStyle = est[2]; x.font = F(700, 27); sp(2); x.fillText(est[0], W / 2 + 1, sy + 35); sp(0);
+  // ---- datos
+  const filas = [['Cliente', v.n], ['Teléfono', v.t], ['Premio', r.premio || '—', '#1e8a4f'],
+    [n > 1 ? 'Valor total' : 'Valor boleta', r.precio ? money(r.precio * n) : 'Gratis'], ['Juega con', r.loteria || 'Por definir'], ['Fecha del sorteo', fechaBoleta(r.fecha)]];
+  let yy = cut + 73;
+  filas.forEach(([l, val, col], i) => {
+    x.textAlign = 'left'; x.fillStyle = '#1f2433'; x.font = F(400, 31); x.fillText(l, cx + 61, yy);
+    x.textAlign = 'right'; x.fillStyle = col || '#0f1a3a'; x.font = F(700, 31);
+    let t = String(val); while (x.measureText(t).width > cw - 380 && t.length > 4) t = t.slice(0, -2); if (t !== String(val)) t += '…';
+    x.fillText(t, cx + cw - 61, yy);
+    if (i < filas.length - 1){ x.fillStyle = '#dfe3ea'; x.fillRect(cx + 61, yy + 24, cw - 122, 2); }
+    yy += 68;
   });
-  x.textAlign = 'center'; x.fillStyle = '#8a94a8'; x.font = F(500, 24);
-  x.fillText(`Código ${v.cod || '—'}   ·   Emitida ${new Date(v.fp || v.f || Date.now()).toLocaleDateString('es-CO')}`, W / 2, cy + ch - 42);
-  // pie
-  x.fillStyle = '#ffffff'; x.font = F(700, 38); x.fillText('¡Buena suerte!', W / 2, H - 68);
-  x.fillStyle = 'rgba(255,255,255,.65)'; x.font = F(500, 22); x.fillText('Conserva esta boleta, es tu comprobante de participación.', W / 2, H - 28);
+  x.textAlign = 'center'; x.fillStyle = '#2b3245'; x.font = F(400, 25);
+  x.fillText(`Código ${v.cod || '—'}   ·   Emitida ${new Date(v.fp || v.f || Date.now()).toLocaleDateString('es-CO')}`, W / 2, 1266 + extra);
+  // ---- pie
+  x.fillStyle = '#1e2026'; x.font = F(800, 54); sp(-1); x.fillText('¡Buena suerte!', W / 2, H - 70); sp(0);
+  x.fillStyle = '#3a4152'; x.font = F(400, 23); x.fillText('Conserva esta boleta, es tu comprobante de participación.', W / 2, H - 28);
   return c;
+}
+function fechaBoleta(f){
+  if (!f) return 'Por definir';
+  const d = new Date(f + 'T12:00:00');
+  const m = ['ene.', 'feb.', 'mar.', 'abr.', 'may.', 'jun.', 'jul.', 'ago.', 'sept.', 'oct.', 'nov.', 'dic.'][d.getMonth()];
+  return `${String(d.getDate()).padStart(2, '0')} de ${m} de ${d.getFullYear()}`;
 }
 async function modalBoleta(k, soloEste){
   const r = getRifa(UI.rifaId); const v = r.nums[k];
