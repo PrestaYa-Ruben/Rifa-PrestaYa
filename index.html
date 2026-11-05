@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#0b1f4b">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Rifas PrestaYa</title>
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icons/icon-192.png">
+<link rel="apple-touch-icon" href="icons/icon-192.png">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#0b1f4b; --navy2:#13306d; --navy3:#1c3f8a;
+  --green:#1fbf6a; --green2:#16a159; --gold:#ffc83d; --red:#ff4d5e; --orange:#ff9f1c;
+  --bg:#eef2f9; --card:#ffffff; --text:#13203d; --muted:#6b7794; --line:#e2e8f3;
+  --r:18px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);color:var(--text);font-family:'Poppins',system-ui,sans-serif}
+body{min-height:100vh;padding-bottom:env(safe-area-inset-bottom)}
+button{font-family:inherit;cursor:pointer;border:none}
+input,select,textarea{font-family:inherit;font-size:16px}
+.hidden{display:none!important}
+
+/* HEADER */
+.top{background:linear-gradient(135deg,var(--navy),var(--navy3));color:#fff;padding:calc(18px + env(safe-area-inset-top)) 18px 26px;border-radius:0 0 28px 28px;position:relative;overflow:hidden}
+.top:after{content:"";position:absolute;right:-60px;top:-60px;width:200px;height:200px;border-radius:50%;background:rgba(31,191,106,.18)}
+.brand{display:flex;align-items:center;gap:10px;position:relative;z-index:1}
+.brand .logo{font-weight:900;font-size:26px;letter-spacing:-.5px}
+.brand .logo b{color:var(--green)}
+.brand .tag{background:var(--gold);color:var(--navy);font-weight:800;font-size:11px;padding:3px 9px;border-radius:20px;letter-spacing:.5px}
+.top .sub{opacity:.8;font-size:13px;margin-top:4px;position:relative;z-index:1}
+.top .actions{position:absolute;right:14px;top:calc(16px + env(safe-area-inset-top));display:flex;gap:6px;z-index:2}
+.iconbtn{background:rgba(255,255,255,.14);color:#fff;width:40px;height:40px;border-radius:12px;font-size:18px;display:grid;place-items:center}
+.ver{font-size:10px;opacity:.6;margin-top:2px;position:relative;z-index:1}
+
+.wrap{max-width:720px;margin:0 auto;padding:16px}
+.card{background:var(--card);border-radius:var(--r);padding:16px;box-shadow:0 4px 18px rgba(11,31,75,.07);margin-bottom:14px}
+h2{font-size:18px;font-weight:800}
+h3{font-size:15px;font-weight:700}
+.muted{color:var(--muted);font-size:13px}
+
+.btn{background:var(--green);color:#fff;font-weight:700;padding:13px 18px;border-radius:14px;font-size:15px;display:inline-flex;align-items:center;justify-content:center;gap:8px;transition:transform .1s}
+.btn:active{transform:scale(.97)}
+.btn.block{width:100%}
+.btn.navy{background:var(--navy)}
+.btn.gold{background:var(--gold);color:var(--navy)}
+.btn.ghost{background:#eef2f9;color:var(--navy)}
+.btn.red{background:var(--red)}
+.btn.wa{background:#25d366}
+.btn.sm{padding:9px 12px;font-size:13px;border-radius:11px}
+.row{display:flex;gap:10px}
+.row>*{flex:1}
+
+/* LISTA RIFAS */
+.rifa-item{display:flex;gap:12px;align-items:center;cursor:pointer}
+.rifa-badge{width:58px;height:58px;border-radius:16px;background:linear-gradient(135deg,var(--green),var(--green2));color:#fff;display:grid;place-items:center;font-weight:900;font-size:13px;text-align:center;line-height:1.1;flex-shrink:0}
+.rifa-badge b{font-size:20px;display:block}
+.rifa-item .info{flex:1;min-width:0}
+.rifa-item .info h3{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prog{height:8px;background:#e8edf6;border-radius:8px;overflow:hidden;margin-top:8px}
+.prog i{display:block;height:100%;background:linear-gradient(90deg,var(--green),var(--gold));border-radius:8px}
+.empty{text-align:center;padding:40px 20px}
+.empty .big{font-size:56px}
+
+.fab{position:fixed;right:18px;bottom:calc(20px + env(safe-area-inset-bottom));background:var(--green);color:#fff;font-weight:800;padding:15px 20px;border-radius:30px;box-shadow:0 8px 24px rgba(31,191,106,.45);font-size:15px;z-index:40}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.stat{background:#f4f7fc;border-radius:14px;padding:10px;text-align:center}
+.stat b{display:block;font-size:18px;font-weight:800}
+.stat span{font-size:11px;color:var(--muted)}
+.stat.g b{color:var(--green2)} .stat.o b{color:var(--orange)} .stat.n b{color:var(--navy3)}
+
+/* TABS */
+.tabs{display:flex;background:#e3e9f4;border-radius:14px;padding:4px;margin-bottom:12px;gap:4px}
+.tabs button{flex:1;background:none;padding:10px 4px;border-radius:11px;font-weight:700;font-size:13px;color:var(--muted)}
+.tabs button.on{background:#fff;color:var(--navy);box-shadow:0 2px 8px rgba(0,0,0,.06)}
+
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:4px;margin-bottom:10px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chip{background:#fff;border:1.5px solid var(--line);padding:7px 12px;border-radius:20px;font-size:12px;font-weight:600;white-space:nowrap;color:var(--muted)}
+.chip.on{background:var(--navy);border-color:var(--navy);color:#fff}
+
+/* GRID */
+.grid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+.grid.c2{grid-template-columns:repeat(5,1fr)}
+.num{aspect-ratio:1/1;border-radius:12px;background:#fff;border:2px solid var(--line);font-weight:800;font-size:16px;color:var(--navy);display:grid;place-items:center;position:relative;transition:transform .1s}
+.grid.c4 .num{font-size:14px;aspect-ratio:1.15/1}
+.num:active{transform:scale(.93)}
+.num.r{background:#fff4e0;border-color:var(--orange);color:#b86a00}
+.num.p{background:var(--green);border-color:var(--green);color:#fff}
+.num.x{background:#ffe3e6;border-color:#ff9aa5;color:#c62839}
+.num.x::after{content:"🔒";position:absolute;top:2px;right:3px;font-size:9px;line-height:1}
+.only-free .num.x,.only-free .num.mine{display:none}
+.gridbox{max-height:58vh;overflow-y:auto;position:relative;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:4px 3px;border-radius:14px;background:#f6f8fc;border:1.5px solid var(--line)}
+.num.flash{animation:flash .6s 3}
+@keyframes flash{50%{transform:scale(1.15);box-shadow:0 0 0 4px var(--gold)}}
+.num.shake{animation:shake .35s}
+@keyframes shake{20%,60%{transform:translateX(-5px)}40%,80%{transform:translateX(5px)}}
+@media (prefers-reduced-motion:reduce){.num.flash,.num.shake,.num.win{animation:none}}
+.num.sel{background:var(--gold);border-color:#e8a900;color:var(--navy);transform:scale(1.05);box-shadow:0 4px 12px rgba(255,200,61,.5)}
+.num.mine{background:var(--navy);border-color:var(--navy);color:#fff}
+.num.win{animation:pulse 1s infinite;background:var(--red);border-color:var(--red);color:#fff}
+@keyframes pulse{50%{transform:scale(1.08)}}
+.legend{display:flex;gap:12px;flex-wrap:wrap;font-size:11px;color:var(--muted);margin:10px 0}
+.legend i{display:inline-block;width:12px;height:12px;border-radius:4px;vertical-align:-2px;margin-right:4px;border:2px solid var(--line);background:#fff}
+
+.pager{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.pager select{flex:1;padding:10px;border-radius:12px;border:1.5px solid var(--line);background:#fff;font-weight:600}
+.pager button{width:44px;height:44px;border-radius:12px;background:var(--navy);color:#fff;font-size:18px;font-weight:800}
+
+.search{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);margin-bottom:10px;background:#fff}
+
+/* FORM */
+.field{margin-bottom:12px}
+.field label{display:block;font-size:12px;font-weight:700;color:var(--muted);margin-bottom:5px;text-transform:uppercase;letter-spacing:.4px}
+.field input,.field select,.field textarea{width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid var(--line);background:#fafbfe;color:var(--text)}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--green);background:#fff}
+.seg{display:flex;gap:8px}
+.seg button{flex:1;padding:12px 6px;border-radius:12px;background:#f1f4fa;border:2px solid transparent;font-weight:800;color:var(--navy);font-size:14px}
+.seg button small{display:block;font-weight:500;font-size:10px;color:var(--muted)}
+.seg button.on{border-color:var(--green);background:#e6f8ef}
+
+/* MODAL */
+.modal{position:fixed;inset:0;background:rgba(8,18,44,.6);z-index:100;display:flex;align-items:flex-end;justify-content:center;backdrop-filter:blur(3px);animation:fade .2s}
+.sheet{background:#fff;width:100%;max-width:560px;max-height:92vh;overflow-y:auto;border-radius:26px 26px 0 0;padding:20px 18px calc(22px + env(safe-area-inset-bottom));animation:up .25s ease}
+.sheet .handle{width:44px;height:5px;background:#dde3ee;border-radius:5px;margin:-6px auto 14px}
+.sheet h2{margin-bottom:12px}
+@keyframes up{from{transform:translateY(100%)}}
+@keyframes fade{from{opacity:0}}
+
+.big-num{font-size:54px;font-weight:900;color:var(--navy);text-align:center;letter-spacing:2px;line-height:1}
+.pill{display:inline-block;padding:4px 10px;border-radius:20px;font-size:11px;font-weight:700}
+.pill.r{background:#fff4e0;color:#b86a00}.pill.p{background:#e2f7ec;color:var(--green2)}.pill.d{background:#eef2f9;color:var(--muted)}
+
+.plist .it{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
+.plist .it:last-child{border:none}
+.plist .n{min-width:56px;height:40px;padding:0 6px;border-radius:11px;display:grid;place-items:center;font-weight:800;color:#fff;background:var(--green)}
+.plist .n.r{background:var(--orange)}
+.plist .who{flex:1;min-width:0}
+.plist .who b{display:block;font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+
+.boleta-prev{width:100%;border-radius:16px;box-shadow:0 6px 20px rgba(0,0,0,.15);display:block;margin-bottom:12px}
+
+.linkbox{background:#f4f7fc;border:1.5px dashed #c7d2e6;border-radius:12px;padding:12px;font-size:12px;word-break:break-all;color:var(--navy3);max-height:90px;overflow:hidden;margin:10px 0}
+
+.toast{position:fixed;left:50%;bottom:calc(90px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--navy);color:#fff;padding:12px 18px;border-radius:14px;font-size:14px;font-weight:600;z-index:200;box-shadow:0 8px 24px rgba(0,0,0,.25);max-width:90%;text-align:center;animation:fade .2s}
+
+/* CLIENTE */
+.hero{background:linear-gradient(135deg,var(--navy),var(--navy3));color:#fff;padding:calc(22px + env(safe-area-inset-top)) 18px 70px;text-align:center;position:relative;overflow:hidden}
+.hero:before,.hero:after{content:"";position:absolute;border-radius:50%;background:rgba(31,191,106,.18)}
+.hero:before{width:220px;height:220px;left:-80px;top:-80px}
+.hero:after{width:160px;height:160px;right:-50px;bottom:-40px;background:rgba(255,200,61,.15)}
+.hero .logo{font-weight:900;font-size:30px;position:relative;z-index:1}
+.hero .logo b{color:var(--green)}
+.hero h1{font-size:22px;font-weight:800;margin-top:10px;position:relative;z-index:1}
+.hero .prize{display:inline-block;background:var(--gold);color:var(--navy);font-weight:800;padding:8px 16px;border-radius:24px;margin-top:10px;font-size:15px;position:relative;z-index:1}
+.info-card{margin-top:-50px;position:relative;z-index:2}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.info-grid div{background:#f4f7fc;border-radius:12px;padding:10px}
+.info-grid span{font-size:11px;color:var(--muted);display:block}
+.info-grid b{font-size:14px}
+.sticky-sel{position:fixed;left:0;right:0;bottom:0;background:#fff;padding:12px 16px calc(12px + env(safe-area-inset-bottom));box-shadow:0 -6px 24px rgba(11,31,75,.15);z-index:50;border-radius:22px 22px 0 0;animation:up .25s}
+.sticky-sel .sel-nums{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:10px;max-height:72px;overflow-y:auto}
+.sticky-sel .sel-nums span{background:var(--gold);color:var(--navy);font-weight:800;padding:5px 10px;border-radius:10px;font-size:14px}
+.success{text-align:center;padding:10px 0}
+.success .ic{width:80px;height:80px;border-radius:50%;background:#e2f7ec;color:var(--green2);font-size:42px;display:grid;place-items:center;margin:0 auto 12px}
+.note{background:#fff8e6;border-left:4px solid var(--gold);padding:10px 12px;border-radius:10px;font-size:12px;color:#7a5a00;margin-top:10px}
+.foot{text-align:center;font-size:11px;color:var(--muted);padding:16px 0 180px}
+</style>
+</head>
+<body>
+
+<!-- ===================== ADMIN ===================== -->
+<div id="admin" class="hidden">
+  <header class="top">
+    <div class="brand"><span class="logo">Presta<b>Ya</b></span><span class="tag">RIFAS</span></div>
+    <div class="sub" id="topSub">Crea, administra y comparte tus rifas</div>
+    <div class="ver" id="verTxt"></div>
+    <div class="actions">
+      <button class="iconbtn hidden" id="btnInstall" title="Instalar">⬇️</button>
+      <button class="iconbtn" id="btnMenu" title="Ajustes">⚙️</button>
+    </div>
+  </header>
+
+  <!-- Vista lista -->
+  <main class="wrap" id="vLista"></main>
+
+  <!-- Vista detalle -->
+  <main class="wrap hidden" id="vDetalle"></main>
+
+  <button class="fab" id="fabNew">＋ Nueva rifa</button>
+</div>
+
+<!-- ===================== CLIENTE ===================== -->
+<div id="cliente" class="hidden"></div>
+
+<div id="modalRoot"></div>
+
+<script>
+/* =========================================================
+   RIFAS PRESTAYA  ·  v1.0
+   ========================================================= */
+const VERSION = 'v1.2';
+const DEFAULT_WA = '573162685282';
+const KEY = 'rifasPY_data_v1';
+const KEY_CFG = 'rifasPY_cfg_v1';
+const KEY_MINE = 'rifasPY_mine_v1';
+const MAX_SEL = 20;
+
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const money = v => '$' + Math.round(Number(v)||0).toLocaleString('es-CO');
+const pad = (n, c) => String(n).padStart(c, '0');
+const uid = () => Date.now().toString(36).slice(-5) + Math.random().toString(36).slice(2, 5);
+const fmtFecha = f => { if(!f) return 'Por definir'; const d = new Date(f + 'T12:00:00'); return d.toLocaleDateString('es-CO', {weekday:'long', day:'numeric', month:'long', year:'numeric'}); };
+const fmtFechaCorta = f => { if(!f) return 'Por definir'; const d = new Date(f + 'T12:00:00'); return d.toLocaleDateString('es-CO', {day:'2-digit', month:'short', year:'numeric'}); };
+const waNum = t => { let d = String(t||'').replace(/\D/g, ''); if (d.length === 10 && d[0] === '3') d = '57' + d; return d; };
+const ls = { get(k, def){ try{ return JSON.parse(localStorage.getItem(k)) ?? def; }catch(e){ return def; } }, set(k, v){ try{ localStorage.setItem(k, JSON.stringify(v)); }catch(e){ toast('No se pudo guardar (almacenamiento lleno)'); } } };
+
+function toast(msg, ms = 2400){
+  const t = document.createElement('div'); t.className = 'toast'; t.textContent = msg;
+  document.body.appendChild(t); setTimeout(() => t.remove(), ms);
+}
+function openURL(url){
+  const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener';
+  document.body.appendChild(a); a.click(); a.remove();
+}
+function openWA(phone, text){ openURL('https://wa.me/' + waNum(phone) + '?text=' + encodeURIComponent(text)); }
+/* Confirmación propia (confirm/alert no funcionan en todos los navegadores) */
+function askConfirm(msg, okText, onOk, danger = true){
+  modal(`<div style="text-align:center;padding:6px 0 4px"><div style="font-size:44px">${danger ? '⚠️' : '❓'}</div>
+    <p style="margin:10px 0 18px;font-size:15px;line-height:1.5">${msg}</p></div>
+    <div class="row"><button class="btn ghost" onclick="closeModal()">Cancelar</button><button class="btn ${danger ? 'red' : ''}" id="cfOk">${okText}</button></div>`);
+  $('#cfOk').onclick = () => { closeModal(); onOk(); };
+}
+function showMsg(msg){
+  modal(`<div style="text-align:center;padding:6px 0 4px"><div style="font-size:44px">⚠️</div><p style="margin:10px 0 18px;font-size:15px;line-height:1.5">${msg}</p></div>
+    <button class="btn block" onclick="closeModal()">Entendido</button>`);
+}
+
+/* ---------- Codificación del enlace ---------- */
+function b64urlEncode(str){ return btoa(unescape(encodeURIComponent(str))).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+function b64urlDecode(s){ s = s.replace(/-/g,'+').replace(/_/g,'/'); while (s.length % 4) s += '='; return decodeURIComponent(escape(atob(s))); }
+function bitsetEncode(nums, size){
+  const bytes = new Uint8Array(Math.ceil(size / 8));
+  nums.forEach(n => { n = +n; bytes[n >> 3] |= (1 << (n & 7)); });
+  let s = ''; bytes.forEach(b => s += String.fromCharCode(b));
+  return btoa(s).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+}
+function bitsetDecode(b64, size){
+  const set = new Set(); if (!b64) return set;
+  let s = b64.replace(/-/g,'+').replace(/_/g,'/'); while (s.length % 4) s += '=';
+  const bin = atob(s);
+  for (let i = 0; i < bin.length; i++){ const b = bin.charCodeAt(i); if (!b) continue; for (let j = 0; j < 8; j++) if (b & (1 << j)) { const n = i * 8 + j; if (n < size) set.add(n); } }
+  return set;
+}
+
+/* =========================================================
+   ADMIN
+   ========================================================= */
+let DB = ls.get(KEY, { rifas: [] });
+let CFG = ls.get(KEY_CFG, { wa: DEFAULT_WA, org: 'PrestaYa' });
+const save = () => ls.set(KEY, DB);
+const saveCfg = () => ls.set(KEY_CFG, CFG);
+const total = r => Math.pow(10, r.cifras);
+const getRifa = id => DB.rifas.find(r => r.id === id);
+
+const UI = { rifaId: null, tab: 'nums', filtro: 'todos', page: 0, q: '', live: false };
+
+function stats(r){
+  const vals = Object.values(r.nums || {});
+  const p = vals.filter(v => v.e === 'p').length, a = vals.filter(v => v.e === 'r').length;
+  const t = total(r);
+  return { t, p, a, d: t - p - a, rec: p * r.precio, porCobrar: a * r.precio, pct: ((p + a) / t) * 100 };
+}
+
+function renderLista(){
+  $('#vLista').classList.remove('hidden'); $('#vDetalle').classList.add('hidden'); $('#fabNew').classList.remove('hidden');
+  $('#topSub').textContent = 'Crea, administra y comparte tus rifas';
+  const el = $('#vLista');
+  if (!DB.rifas.length){
+    el.innerHTML = `<div class="card empty"><div class="big">🎟️</div><h2>Aún no tienes rifas</h2><p class="muted" style="margin:8px 0 18px">Crea tu primera rifa de 2, 3 o 4 cifras y compártela con tus clientes por WhatsApp.</p><button class="btn block" onclick="formRifa()">＋ Crear mi primera rifa</button></div>`;
+    return;
+  }
+  const g = DB.rifas.reduce((a, r) => { const s = stats(r); a.rec += s.rec; a.pc += s.porCobrar; a.v += s.p + s.a; return a; }, { rec: 0, pc: 0, v: 0 });
+  el.innerHTML = `
+    <div class="card">
+      <h3>Resumen general</h3>
+      <div class="stats">
+        <div class="stat n"><b>${DB.rifas.length}</b><span>Rifas</span></div>
+        <div class="stat g"><b>${money(g.rec)}</b><span>Recaudado</span></div>
+        <div class="stat o"><b>${money(g.pc)}</b><span>Por cobrar</span></div>
+      </div>
+    </div>
+    ${DB.rifas.slice().reverse().map(r => { const s = stats(r); return `
+      <div class="card rifa-item" onclick="abrirRifa('${r.id}')">
+        <div class="rifa-badge"><div><b>${r.cifras}</b>cifras</div></div>
+        <div class="info">
+          <h3>${esc(r.nombre)}</h3>
+          <div class="muted">🏆 ${esc(r.premio || 'Sin premio')} · ${money(r.precio)}</div>
+          <div class="muted">📅 ${fmtFechaCorta(r.fecha)}${r.ganador != null ? ' · 🎉 Ganó ' + pad(r.ganador, r.cifras) : ''}</div>
+          <div class="prog"><i style="width:${Math.max(s.pct, s.pct ? 2 : 0)}%"></i></div>
+          <div class="muted" style="font-size:11px;margin-top:4px">${s.p + s.a} de ${s.t.toLocaleString('es-CO')} números · ${s.pct.toFixed(1)}%</div>
+        </div>
+      </div>`; }).join('')}
+    <div class="foot">Rifas PrestaYa ${VERSION}</div>`;
+}
+
+function abrirRifa(id){ UI.rifaId = id; UI.tab = 'nums'; UI.filtro = 'todos'; UI.page = 0; UI.q = ''; renderDetalle(); window.scrollTo(0, 0); }
+
+function renderDetalle(){
+  const r = getRifa(UI.rifaId); if (!r) return renderLista();
+  $('#vLista').classList.add('hidden'); $('#vDetalle').classList.remove('hidden'); $('#fabNew').classList.add('hidden');
+  $('#topSub').textContent = r.nombre;
+  const s = stats(r);
+  $('#vDetalle').innerHTML = `
+    <div class="row" style="margin-bottom:12px">
+      <button class="btn ghost sm" style="flex:0 0 auto" onclick="renderLista()">← Rifas</button>
+      <span></span>
+      <button class="btn ghost sm" style="flex:0 0 auto" onclick="formRifa('${r.id}')">✏️ Editar</button>
+    </div>
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
+        <div><h2>${esc(r.nombre)}</h2><div class="muted">🏆 ${esc(r.premio || 'Sin premio')}</div>
+        <div class="muted">🎲 ${esc(r.loteria || 'Lotería por definir')} · 📅 ${fmtFechaCorta(r.fecha)}</div></div>
+        <span class="pill p" style="white-space:nowrap">${r.cifras} cifras</span>
+      </div>
+      <div class="prog"><i style="width:${s.pct}%"></i></div>
+      <div class="stats">
+        <div class="stat g"><b>${s.p}</b><span>Pagados</span></div>
+        <div class="stat o"><b>${s.a}</b><span>Apartados</span></div>
+        <div class="stat n"><b>${s.d.toLocaleString('es-CO')}</b><span>Disponibles</span></div>
+        <div class="stat g"><b>${money(s.rec)}</b><span>Recaudado</span></div>
+        <div class="stat o"><b>${money(s.porCobrar)}</b><span>Por cobrar</span></div>
+        <div class="stat n"><b>${money(r.precio)}</b><span>Valor boleta</span></div>
+      </div>
+      ${r.ganador != null ? `<div class="note" style="background:#e2f7ec;border-color:var(--green);color:#0d6b3b">🎉 Número ganador: <b>${pad(r.ganador, r.cifras)}</b> ${r.nums[pad(r.ganador, r.cifras)] ? '· ' + esc(r.nums[pad(r.ganador, r.cifras)].n) : '· (sin vender)'}</div>` : ''}
+    </div>
+    <div class="row" style="margin-bottom:12px">
+      <button class="btn" onclick="modalCompartir()">🔗 Compartir</button>
+      <button class="btn navy" onclick="modalPegar()">📥 Registrar</button>
+    </div>
+    <div class="tabs">
+      <button class="${UI.tab === 'nums' ? 'on' : ''}" onclick="UI.tab='nums';renderDetalle()">Números</button>
+      <button class="${UI.tab === 'part' ? 'on' : ''}" onclick="UI.tab='part';renderDetalle()">Participantes</button>
+      <button class="${UI.tab === 'sorteo' ? 'on' : ''}" onclick="UI.tab='sorteo';renderDetalle()">Sorteo</button>
+    </div>
+    <div id="tabBody"></div>`;
+  if (UI.tab === 'nums') renderNums(r);
+  else if (UI.tab === 'part') renderPart(r);
+  else renderSorteo(r);
+}
+
+function rangeOptions(r, page){
+  const pages = total(r) / 100; let o = '';
+  for (let i = 0; i < pages; i++) o += `<option value="${i}" ${i === page ? 'selected' : ''}>${pad(i * 100, r.cifras)} – ${pad(i * 100 + 99, r.cifras)}</option>`;
+  return o;
+}
+
+function renderNums(r){
+  const t = total(r), f = UI.filtro, s = stats(r);
+  const win = r.ganador != null ? pad(r.ganador, r.cifras) : null;
+  const prevBox = $('#gridBox'); const st = prevBox ? prevBox.scrollTop : 0;
+  let html = '', count = 0;
+  for (let i = 0; i < t; i++){
+    const k = pad(i, r.cifras), v = r.nums[k];
+    if (f === 'd' && v) continue;
+    if ((f === 'r' || f === 'p') && (!v || v.e !== f)) continue;
+    html += `<button class="num ${v ? v.e : ''}${k === win ? ' win' : ''}" data-k="${k}">${k}</button>`; count++;
+  }
+  $('#tabBody').innerHTML = `
+    <div class="card">
+      <div class="row" style="margin-bottom:10px">
+        <input id="goNum" class="search" style="margin:0" type="search" inputmode="numeric" maxlength="${r.cifras}" placeholder="🔍 Ir al número ${'0'.repeat(r.cifras)}">
+        <button class="btn navy sm" style="flex:0 0 auto" onclick="irNumero()">Ir</button>
+      </div>
+      <div class="chips">
+        ${[['todos', 'Todos', s.t], ['d', 'Disponibles', s.d], ['r', 'Apartados', s.a], ['p', 'Pagados', s.p]].map(([k, l, n]) => `<button class="chip ${f === k ? 'on' : ''}" onclick="UI.filtro='${k}';renderDetalle()">${l} · ${n.toLocaleString('es-CO')}</button>`).join('')}
+      </div>
+      <div class="legend"><span><i></i>Disponible</span><span><i style="background:#fff4e0;border-color:var(--orange)"></i>Apartado</span><span><i style="background:var(--green);border-color:var(--green)"></i>Pagado</span>${fbBase() ? `<span id="admLive">${UI.live ? '🟢 En vivo' : '⚪ Conectando…'}</span>` : ''}</div>
+      <div class="gridbox" id="gridBox">${count ? `<div class="grid c${r.cifras}">${html}</div>` : '<p class="muted" style="text-align:center;padding:30px">No hay números en esta vista</p>'}</div>
+      <p class="muted" style="font-size:11px;text-align:center;margin-top:8px">${count.toLocaleString('es-CO')} números · desliza dentro del panel para verlos todos</p>
+    </div>`;
+  const box = $('#gridBox'); box.scrollTop = st;
+  box.onclick = e => { const b = e.target.closest('.num'); if (b) modalNumero(b.dataset.k); };
+  $('#goNum').onkeydown = e => { if (e.key === 'Enter') irNumero(); };
+}
+function scrollToNum(box, k){
+  const el = box.querySelector(`[data-k="${k}"]`); if (!el) return false;
+  box.scrollTo({ top: el.offsetTop - box.clientHeight / 2 + el.offsetHeight / 2, behavior: 'smooth' });
+  el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash');
+  return true;
+}
+function irNumero(){
+  const r = getRifa(UI.rifaId); const v = $('#goNum').value.replace(/\D/g, '');
+  if (!v || v.length > r.cifras) return toast(`Escribe un número de hasta ${r.cifras} cifras`);
+  const k = pad(v, r.cifras);
+  if (!scrollToNum($('#gridBox'), k)){ UI.filtro = 'todos'; renderDetalle(); setTimeout(() => scrollToNum($('#gridBox'), k), 50); }
+}
+
+/* ---------- Conexión en vivo (Firebase Realtime Database, opcional) ---------- */
+const fbBase = () => (CFG.fb || '').trim().replace(/\/+$/, '');
+async function fbReq(base, path, method = 'GET', body){
+  const r = await fetch(base + path + '.json', { method, cache: 'no-store', body: body !== undefined ? JSON.stringify(body) : undefined });
+  if (!r.ok) throw new Error('HTTP ' + r.status);
+  return r.json();
+}
+const fbVal = v => ({ n: v.n, t: v.t, e: v.e, f: v.f || Date.now() });
+function fbPushNum(r, k){
+  if (!fbBase()) return; const v = r.nums[k];
+  (v ? fbReq(fbBase(), `/rifasPY/${r.id}/nums/n${k}`, 'PUT', fbVal(v)) : fbReq(fbBase(), `/rifasPY/${r.id}/nums/n${k}`, 'DELETE')).catch(() => toast('Sin conexión: el cambio se enviará al sincronizar'));
+}
+let _syncing = false;
+async function syncAdmin(r, rerender){
+  if (!fbBase() || !r || _syncing) return; _syncing = true;
+  try{
+    const remote = await fbReq(fbBase(), `/rifasPY/${r.id}/nums`) || {};
+    const nuevos = [];
+    Object.entries(remote).forEach(([rk, v]) => {
+      const k = rk.replace(/^n/, '');
+      if (!r.nums[k] && v && v.n){ r.nums[k] = { n: v.n, t: v.t, e: 'r', f: v.f || Date.now(), cod: 'PY-' + uid().toUpperCase().slice(0, 6), web: 1 }; nuevos.push(k); }
+    });
+    const subir = {}; Object.entries(r.nums).forEach(([k, v]) => subir['n' + k] = fbVal(v));
+    if (Object.keys(subir).length) await fbReq(fbBase(), `/rifasPY/${r.id}/nums`, 'PATCH', subir);
+    UI.live = true;
+    if (nuevos.length){
+      save(); if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
+      toast(`🔔 Nueva reserva: ${nuevos.join(', ')} · ${r.nums[nuevos[0]].n}`, 4000);
+      if (rerender && !$('#modalRoot .modal') && UI.rifaId === r.id) renderDetalle();
+    }
+    const l = $('#admLive'); if (l) l.textContent = '🟢 En vivo';
+  }catch(e){ UI.live = false; const l = $('#admLive'); if (l) l.textContent = '🔴 Sin conexión'; }
+  finally{ _syncing = false; }
+}
+async function syncTodas(){ for (const r of DB.rifas) await syncAdmin(r, false); if (!$('#vLista').classList.contains('hidden')) renderLista(); }
+setInterval(() => {
+  if (document.hidden || !fbBase() || PREVIEW) return;
+  if (UI.rifaId && !$('#vDetalle').classList.contains('hidden')) syncAdmin(getRifa(UI.rifaId), true);
+}, 10000);
+
+function renderPart(r){
+  // agrupar por teléfono
+  const groups = {};
+  Object.entries(r.nums).forEach(([k, v]) => { const g = waNum(v.t) || v.n; (groups[g] = groups[g] || { n: v.n, t: v.t, nums: [] }).nums.push({ k, e: v.e, f: v.f }); });
+  const arr = Object.values(groups).sort((a, b) => a.n.localeCompare(b.n));
+  $('#tabBody').innerHTML = `<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><h3>${arr.length} participante${arr.length === 1 ? '' : 's'}</h3>
+    ${arr.length ? `<button class="btn ghost sm" onclick="exportCSV()">⬇️ CSV</button>` : ''}</div>
+    ${arr.length ? `<div class="plist">${arr.map(g => g.nums.sort((a, b) => a.k.localeCompare(b.k)).map(x => `
+      <div class="it">
+        <div class="n ${x.e}">${x.k}</div>
+        <div class="who"><b>${esc(g.n)}</b><span class="muted">📱 ${esc(g.t)} · <span class="pill ${x.e}">${x.e === 'p' ? 'Pagado' : 'Apartado'}</span></span></div>
+        <button class="btn sm ${x.e === 'p' ? 'gold' : 'ghost'}" onclick="modalNumero('${x.k}')">${x.e === 'p' ? '🎟️' : '✏️'}</button>
+      </div>`).join('')).join('')}</div>`
+    : `<p class="muted" style="text-align:center;padding:20px">Todavía no hay participantes. Comparte el enlace de la rifa para que tus clientes elijan su número.</p>`}
+  </div>`;
+}
+
+function renderSorteo(r){
+  const win = r.ganador != null ? pad(r.ganador, r.cifras) : '';
+  const v = win ? r.nums[win] : null;
+  $('#tabBody').innerHTML = `<div class="card">
+    <h3>Registrar número ganador</h3>
+    <p class="muted" style="margin:4px 0 12px">Escribe el número que salió en ${esc(r.loteria || 'la lotería')} (últimas ${r.cifras} cifras).</p>
+    <div class="row"><input id="inWin" class="search" style="margin:0;font-size:22px;font-weight:800;text-align:center;letter-spacing:3px" inputmode="numeric" maxlength="${r.cifras}" placeholder="${'0'.repeat(r.cifras)}" value="${win}">
+    <button class="btn" style="flex:0 0 auto" onclick="guardarGanador()">Guardar</button></div>
+    ${win ? `<div style="margin-top:16px;text-align:center">
+      <div class="muted">Número ganador</div><div class="big-num" style="color:var(--green2)">${win}</div>
+      ${v ? `<h2 style="margin-top:8px">🎉 ${esc(v.n)}</h2><div class="muted">📱 ${esc(v.t)} · <span class="pill ${v.e}">${v.e === 'p' ? 'Pagado' : 'Apartado (no pagó)'}</span></div>
+      <button class="btn wa block" style="margin-top:14px" onclick="avisarGanador()">💬 Avisar al ganador por WhatsApp</button>`
+      : `<p class="muted" style="margin-top:8px">Este número no fue vendido. La rifa queda sin ganador o puedes definir cómo continuar.</p>`}
+      <button class="btn ghost block" style="margin-top:10px" onclick="quitarGanador()">Quitar ganador</button>
+    </div>` : ''}
+  </div>`;
+}
+function guardarGanador(){
+  const r = getRifa(UI.rifaId); const v = $('#inWin').value.replace(/\D/g, '');
+  if (v.length !== r.cifras) return toast(`Escribe un número de ${r.cifras} cifras`);
+  r.ganador = +v; save(); renderDetalle(); toast('Ganador registrado 🎉');
+}
+function quitarGanador(){ const r = getRifa(UI.rifaId); delete r.ganador; save(); renderDetalle(); }
+function avisarGanador(){
+  const r = getRifa(UI.rifaId); const k = pad(r.ganador, r.cifras); const v = r.nums[k];
+  openWA(v.t, `🎉 *¡FELICITACIONES ${v.n.toUpperCase()}!* 🎉\n\nTu número *${k}* resultó GANADOR en la rifa *${r.nombre}* de *PrestaYa*.\n\n🏆 Premio: ${r.premio}\n🎲 Jugó con: ${r.loteria || '-'}\n📅 Fecha: ${fmtFecha(r.fecha)}\n\nComunícate con nosotros para coordinar la entrega de tu premio. ¡Gracias por participar! 🙌`);
+}
+
+/* ---------- Modales ---------- */
+function modal(html, onClose){
+  const m = document.createElement('div'); m.className = 'modal';
+  m.innerHTML = `<div class="sheet"><div class="handle"></div>${html}</div>`;
+  m.addEventListener('click', e => { if (e.target === m) closeModal(); });
+  $('#modalRoot').innerHTML = ''; $('#modalRoot').appendChild(m);
+  m._onClose = onClose;
+  return m;
+}
+function closeModal(){ const m = $('#modalRoot .modal'); if (m){ m._onClose && m._onClose(); m.remove(); } }
+
+function formRifa(id){
+  const r = id ? getRifa(id) : null;
+  const tieneVentas = r && Object.keys(r.nums).length > 0;
+  const c = r ? r.cifras : 2;
+  modal(`
+    <h2>${r ? '✏️ Editar rifa' : '🎟️ Nueva rifa'}</h2>
+    <div class="field"><label>Nombre de la rifa</label><input id="fNom" maxlength="60" placeholder="Ej: Gran Rifa Navideña" value="${esc(r?.nombre)}"></div>
+    <div class="field"><label>Premio</label><input id="fPre" maxlength="80" placeholder="Ej: $500.000 en efectivo" value="${esc(r?.premio)}"></div>
+    <div class="field"><label>Cantidad de cifras</label>
+      <div class="seg" id="fCif">
+        ${[2, 3, 4].map(n => `<button type="button" data-c="${n}" class="${c === n ? 'on' : ''}" ${tieneVentas && c !== n ? 'disabled style="opacity:.4"' : ''}>${n} cifras<small>${pad(0, n)}–${'9'.repeat(n)}</small></button>`).join('')}
+      </div>
+      ${tieneVentas ? '<p class="muted" style="font-size:11px;margin-top:5px">No se pueden cambiar las cifras porque ya hay números vendidos.</p>' : ''}
+    </div>
+    <div class="row">
+      <div class="field"><label>Valor boleta</label><input id="fVal" inputmode="numeric" placeholder="10000" value="${r ? r.precio : ''}"></div>
+      <div class="field"><label>Fecha sorteo</label><input id="fFec" type="date" value="${r?.fecha || ''}"></div>
+    </div>
+    <div class="field"><label>Juega con (lotería)</label><input id="fLot" maxlength="60" placeholder="Ej: Lotería de Medellín" value="${esc(r?.loteria)}"></div>
+    <div class="field"><label>Descripción / condiciones (opcional)</label><textarea id="fDes" rows="3" maxlength="300" placeholder="Ej: El ganador debe tener la boleta pagada antes del sorteo.">${esc(r?.desc)}</textarea></div>
+    <div class="field"><label>Medios de pago (opcional)</label><input id="fPag" maxlength="120" placeholder="Ej: Nequi 316 268 5282" value="${esc(r?.pago)}"></div>
+    <button class="btn block" onclick="guardarRifa('${id || ''}')">${r ? 'Guardar cambios' : 'Crear rifa'}</button>
+    ${r ? `<div class="row" style="margin-top:10px"><button class="btn ghost" onclick="duplicarRifa('${id}')">📄 Duplicar</button><button class="btn red" onclick="borrarRifa('${id}')">🗑️ Eliminar</button></div>` : ''}
+  `);
+  document.querySelectorAll('#fCif button').forEach(b => b.onclick = () => { if (b.disabled) return; document.querySelectorAll('#fCif button').forEach(x => x.classList.remove('on')); b.classList.add('on'); });
+}
+function guardarRifa(id){
+  const nombre = $('#fNom').value.trim();
+  if (!nombre) return toast('Escribe el nombre de la rifa');
+  const cifras = +document.querySelector('#fCif button.on').dataset.c;
+  const precio = +$('#fVal').value.replace(/\D/g, '') || 0;
+  const data = { nombre, premio: $('#fPre').value.trim(), cifras, precio, fecha: $('#fFec').value, loteria: $('#fLot').value.trim(), desc: $('#fDes').value.trim(), pago: $('#fPag').value.trim() };
+  if (id){ Object.assign(getRifa(id), data); save(); closeModal(); renderDetalle(); toast('Rifa actualizada ✅'); }
+  else { const r = { id: uid(), creada: Date.now(), nums: {}, ...data }; DB.rifas.push(r); save(); closeModal(); abrirRifa(r.id); toast('Rifa creada 🎉'); }
+}
+function duplicarRifa(id){
+  const r = getRifa(id); const n = { ...JSON.parse(JSON.stringify(r)), id: uid(), nombre: r.nombre + ' (copia)', nums: {}, creada: Date.now() }; delete n.ganador;
+  DB.rifas.push(n); save(); closeModal(); abrirRifa(n.id); toast('Rifa duplicada sin participantes');
+}
+function borrarRifa(id){
+  const r = getRifa(id);
+  askConfirm(`¿Eliminar la rifa <b>${esc(r.nombre)}</b> y todos sus participantes? Esta acción no se puede deshacer.`, '🗑️ Eliminar', () => {
+    DB.rifas = DB.rifas.filter(x => x.id !== id); save(); if (fbBase()) fbReq(fbBase(), `/rifasPY/${id}`, 'DELETE').catch(() => {}); renderLista(); toast('Rifa eliminada');
+  });
+}
+
+function modalNumero(k){
+  const r = getRifa(UI.rifaId); const v = r.nums[k] || { n: '', t: '', e: 'r' };
+  const libre = !r.nums[k];
+  modal(`
+    <div class="muted" style="text-align:center">${esc(r.nombre)}</div>
+    <div class="big-num" style="margin:6px 0 4px">${k}</div>
+    <div style="text-align:center;margin-bottom:14px"><span class="pill ${libre ? 'd' : v.e}">${libre ? 'Disponible' : v.e === 'p' ? 'Pagado' : 'Apartado'}</span></div>
+    <div class="field"><label>Nombre del cliente</label><input id="nNom" maxlength="50" value="${esc(v.n)}" placeholder="Nombre completo"></div>
+    <div class="field"><label>Teléfono / WhatsApp</label><input id="nTel" inputmode="tel" maxlength="15" value="${esc(v.t)}" placeholder="3001234567"></div>
+    <div class="field"><label>Estado</label>
+      <div class="seg" id="nEst">
+        <button type="button" data-e="r" class="${v.e === 'r' ? 'on' : ''}">🟠 Apartado<small>Sin pagar</small></button>
+        <button type="button" data-e="p" class="${v.e === 'p' ? 'on' : ''}">🟢 Pagado<small>Confirmado</small></button>
+      </div>
+    </div>
+    <button class="btn block" onclick="guardarNumero('${k}')">💾 Guardar</button>
+    ${!libre ? `
+      <div class="row" style="margin-top:10px">
+        <button class="btn gold" onclick="guardarNumero('${k}',true)">🎟️ Boleta</button>
+        <button class="btn wa" onclick="recordarPago('${k}')">💬 ${v.e === 'p' ? 'Escribir' : 'Cobrar'}</button>
+      </div>
+      <button class="btn ghost block" style="margin-top:10px;color:var(--red)" onclick="liberarNumero('${k}')">Liberar número</button>` : ''}
+  `);
+  document.querySelectorAll('#nEst button').forEach(b => b.onclick = () => { document.querySelectorAll('#nEst button').forEach(x => x.classList.remove('on')); b.classList.add('on'); });
+}
+function guardarNumero(k, verBoleta){
+  const r = getRifa(UI.rifaId);
+  const n = $('#nNom').value.trim(), t = $('#nTel').value.trim();
+  if (!n) return toast('Escribe el nombre del cliente');
+  if (t.replace(/\D/g, '').length < 7) return toast('Escribe un teléfono válido');
+  const e = document.querySelector('#nEst button.on').dataset.e;
+  const prev = r.nums[k];
+  r.nums[k] = { n, t, e, f: prev?.f || Date.now(), fp: e === 'p' ? (prev?.fp || Date.now()) : null, cod: prev?.cod || ('PY-' + uid().toUpperCase().slice(0, 6)) };
+  save(); fbPushNum(r, k); closeModal(); renderDetalle();
+  if (verBoleta || (e === 'p' && prev?.e !== 'p')) modalBoleta(k);
+  else toast('Número ' + k + ' guardado ✅');
+}
+function liberarNumero(k){
+  const r = getRifa(UI.rifaId);
+  askConfirm(`¿Liberar el número <b>${k}</b>? Se borrarán los datos del cliente.`, 'Liberar', () => {
+    delete r.nums[k]; save(); fbPushNum(r, k); renderDetalle(); toast('Número ' + k + ' liberado');
+  });
+}
+function recordarPago(k){
+  const r = getRifa(UI.rifaId); const v = r.nums[k];
+  const mis = Object.entries(r.nums).filter(([, x]) => waNum(x.t) === waNum(v.t)).map(([n]) => n);
+  if (v.e === 'p') openWA(v.t, `Hola ${v.n} 👋, te escribimos de *PrestaYa* sobre la rifa *${r.nombre}*.`);
+  else openWA(v.t, `Hola ${v.n} 👋\n\nTe recordamos que tienes apartado${mis.length > 1 ? 's los números' : ' el número'} *${mis.join(', ')}* en la rifa *${r.nombre}* de *PrestaYa*.\n\n💵 Valor: ${money(r.precio * mis.length)}${r.pago ? '\n💳 Pago: ' + r.pago : ''}\n📅 Sorteo: ${fmtFecha(r.fecha)}\n\nEnvíanos tu comprobante de pago para confirmar y enviarte tu boleta. ¡Gracias! 🍀`);
+}
+
+/* ---------- Registrar reserva pegando el mensaje ---------- */
+function modalPegar(){
+  modal(`
+    <h2>📥 Registrar reserva</h2>
+    <p class="muted" style="margin-bottom:12px">Copia el mensaje que te llegó por WhatsApp del cliente y pégalo aquí. Los datos se llenan solos.</p>
+    <div class="field"><textarea id="pTxt" rows="7" placeholder="Pega aquí el mensaje completo..."></textarea></div>
+    <div class="row">
+      <button class="btn ghost" onclick="pegarPortapapeles()">📋 Pegar</button>
+      <button class="btn" onclick="procesarPegado()">Registrar</button>
+    </div>
+    <p class="muted" style="font-size:11px;margin-top:10px">También puedes tocar cualquier número en la cuadrícula para registrarlo manualmente.</p>
+  `);
+}
+async function pegarPortapapeles(){ try{ $('#pTxt').value = await navigator.clipboard.readText(); }catch(e){ toast('Mantén presionado el recuadro y elige "Pegar"'); } }
+function parseReserva(txt){
+  const m = txt.match(/#PY\|([^|\s]+)\|([\d,]+)\|([^|\n]+)\|([\d+]+)/);
+  if (m) return { id: m[1], nums: m[2].split(','), n: m[3].trim(), t: m[4] };
+  // respaldo: leer líneas
+  const g = re => { const x = txt.match(re); return x ? x[1].trim() : ''; };
+  const nums = g(/N[úu]mero\(?s?\)?[^:]*:\s*\*?([\d,\s]+)/i).split(/[,\s]+/).filter(Boolean);
+  return { id: null, nums, n: g(/Nombre[^:]*:\s*\*?([^\n*]+)/i), t: g(/Tel[ée]fono[^:]*:\s*\*?([\d\s+]+)/i).replace(/\s/g, '') };
+}
+function procesarPegado(){
+  const txt = $('#pTxt').value; if (!txt.trim()) return toast('Pega el mensaje primero');
+  const d = parseReserva(txt);
+  const r = getRifa(UI.rifaId);
+  if (d.id && d.id !== r.id){ const o = getRifa(d.id); if (o) return askConfirm(`Este mensaje es de la rifa <b>${esc(o.nombre)}</b>. ¿Registrarlo allí?`, 'Sí, registrar', () => { UI.rifaId = o.id; registrarReserva(o, d); }, false); }
+  registrarReserva(r, d);
+}
+function registrarReserva(r, d){
+  if (!d.nums.length || !d.n) return toast('No se reconoció el mensaje. Regístralo manualmente.');
+  const ok = [], ocupados = [];
+  d.nums.forEach(raw => {
+    const k = pad(raw.replace(/\D/g, ''), r.cifras); if (k.length !== r.cifras) return;
+    const prev = r.nums[k];
+    if (prev && waNum(prev.t) !== waNum(d.t)) ocupados.push(k);
+    else { r.nums[k] = { n: d.n, t: d.t, e: prev?.e || 'r', f: prev?.f || Date.now(), cod: prev?.cod || ('PY-' + uid().toUpperCase().slice(0, 6)) }; ok.push(k); }
+  });
+  save(); syncAdmin(r, false); closeModal(); UI.tab = 'part'; renderDetalle();
+  if (ocupados.length) showMsg(`Estos números ya estaban ocupados por otra persona y <b>NO</b> se registraron: <b>${ocupados.join(', ')}</b><br><br>Avísale al cliente para que elija otros.`);
+  if (ok.length) toast(`Apartado${ok.length > 1 ? 's' : ''}: ${ok.join(', ')} ✅`, 3000);
+}
+
+/* ---------- Compartir enlace ---------- */
+function linkRifa(r){
+  const taken = Object.keys(r.nums).map(Number);
+  const p = { i: r.id, n: r.nombre, p: r.premio, c: r.cifras, v: r.precio, f: r.fecha, l: r.loteria, d: r.desc, g: r.pago, w: CFG.wa, u: fbBase(), b: bitsetEncode(taken, total(r)) };
+  Object.keys(p).forEach(k => (p[k] === '' || p[k] == null) && delete p[k]);
+  return location.origin + location.pathname.replace(/index\.html$/, '') + '#r=' + b64urlEncode(JSON.stringify(p));
+}
+function modalCompartir(){
+  const r = getRifa(UI.rifaId); syncAdmin(r, false); const url = linkRifa(r); const s = stats(r);
+  const msg = `🎟️ *RIFA PRESTAYA* 🎟️\n\n*${r.nombre}*\n🏆 Premio: ${r.premio || '-'}\n💵 Valor boleta: ${money(r.precio)}\n🎲 Juega con: ${r.loteria || '-'}\n📅 Sorteo: ${fmtFecha(r.fecha)}\n\n👉 Elige tu número favorito aquí (quedan ${s.d.toLocaleString('es-CO')} disponibles):\n${url}`;
+  modal(`
+    <h2>🔗 Compartir rifa</h2>
+    <p class="muted">Tu cliente abre el enlace, elige su número y te envía sus datos a tu WhatsApp <b>+${esc(CFG.wa)}</b>.</p>
+    <div class="linkbox">${esc(url)}</div>
+    <button class="btn wa block" id="shWA">💬 Compartir por WhatsApp</button>
+    <div class="row" style="margin-top:10px">
+      <button class="btn navy" id="shCopy">📋 Copiar enlace</button>
+      <button class="btn ghost" id="shMore">📤 Más</button>
+    </div>
+    <button class="btn ghost block" style="margin-top:10px" onclick="verComoCliente()">👁️ Ver como cliente (vista previa)</button>
+    ${fbBase() ? `<div class="note" style="background:#e2f7ec;border-color:var(--green);color:#0d6b3b">🟢 <b>Conexión en vivo activa.</b> Cuando un cliente aparta un número, queda bloqueado al instante para todos y te aparece aquí solo.</div>`
+  : `<div class="note">💡 Sin conexión en vivo, el enlace muestra los números ocupados <b>al momento de compartir</b>. Para que se bloqueen al instante para todos los clientes, activa la <b>Conexión en vivo</b> en ⚙️ Ajustes.</div>`}
+  `);
+  $('#shWA').onclick = () => openURL('https://wa.me/?text=' + encodeURIComponent(msg));
+  $('#shCopy').onclick = () => copiar(url);
+  $('#shMore').onclick = () => navigator.share ? navigator.share({ title: 'Rifa PrestaYa', text: msg.replace(url, ''), url }).catch(() => {}) : copiar(msg);
+}
+function copiar(t){
+  if (navigator.clipboard) navigator.clipboard.writeText(t).then(() => toast('Copiado ✅')).catch(() => fallbackCopy(t));
+  else fallbackCopy(t);
+}
+function fallbackCopy(t){ const a = document.createElement('textarea'); a.value = t; document.body.appendChild(a); a.select(); document.execCommand('copy'); a.remove(); toast('Copiado ✅'); }
+
+/* ---------- Boleta ---------- */
+function roundRect(ctx, x, y, w, h, r){ ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); }
+function wrapText(ctx, text, x, y, maxW, lh, maxLines = 2){
+  const words = String(text).split(' '); let line = '', lines = [];
+  words.forEach(w => { const t = line ? line + ' ' + w : w; if (ctx.measureText(t).width > maxW && line){ lines.push(line); line = w; } else line = t; });
+  if (line) lines.push(line); lines = lines.slice(0, maxLines);
+  lines.forEach((l, i) => ctx.fillText(l, x, y + i * lh)); return lines.length * lh;
+}
+async function dibujarBoleta(r, k){
+  await document.fonts.ready.catch(() => {});
+  const v = r.nums[k]; const W = 1080, H = 1500;
+  const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
+  const F = (w, s) => `${w} ${s}px Poppins, Arial, sans-serif`;
+  // fondo
+  const g = x.createLinearGradient(0, 0, W, H); g.addColorStop(0, '#0b1f4b'); g.addColorStop(1, '#1c3f8a'); x.fillStyle = g; x.fillRect(0, 0, W, H);
+  x.fillStyle = 'rgba(31,191,106,.18)'; x.beginPath(); x.arc(W - 40, 60, 260, 0, 7); x.fill();
+  x.fillStyle = 'rgba(255,200,61,.12)'; x.beginPath(); x.arc(60, H - 80, 220, 0, 7); x.fill();
+  // marca
+  x.textAlign = 'center'; x.fillStyle = '#fff'; x.font = F(900, 92);
+  const wP = x.measureText('Presta').width, wY = x.measureText('Ya').width, sx = W / 2 - (wP + wY) / 2;
+  x.textAlign = 'left'; x.fillText('Presta', sx, 150); x.fillStyle = '#1fbf6a'; x.fillText('Ya', sx + wP, 150);
+  x.textAlign = 'center'; x.fillStyle = '#ffc83d'; x.font = F(800, 36); x.fillText('B O L E T A   O F I C I A L', W / 2, 210);
+  // tarjeta blanca
+  const cx = 70, cy = 260, cw = W - 140, ch = 1120;
+  x.fillStyle = '#fff'; roundRect(x, cx, cy, cw, ch, 44); x.fill();
+  // muescas
+  x.fillStyle = '#132f6a'; [cy + 560].forEach(yy => { x.beginPath(); x.arc(cx, yy, 34, 0, 7); x.fill(); x.beginPath(); x.arc(cx + cw, yy, 34, 0, 7); x.fill(); });
+  x.setLineDash([16, 14]); x.strokeStyle = '#d5dcea'; x.lineWidth = 4; x.beginPath(); x.moveTo(cx + 50, cy + 560); x.lineTo(cx + cw - 50, cy + 560); x.stroke(); x.setLineDash([]);
+  // nombre rifa
+  x.fillStyle = '#13203d'; x.font = F(800, 50); wrapText(x, r.nombre, W / 2, cy + 90, cw - 100, 60);
+  x.fillStyle = '#6b7794'; x.font = F(600, 30); x.fillText('TU NÚMERO', W / 2, cy + 220);
+  // número
+  x.fillStyle = '#1fbf6a'; const nw = Math.max(380, 130 * r.cifras + 120); roundRect(x, W / 2 - nw / 2, cy + 245, nw, 230, 36); x.fill();
+  x.fillStyle = '#fff'; x.font = F(900, 190); x.fillText(k, W / 2, cy + 430);
+  // estado
+  const pagado = v.e === 'p';
+  x.fillStyle = pagado ? '#e2f7ec' : '#fff4e0'; roundRect(x, W / 2 - 150, cy + 495, 300, 50, 25); x.fill();
+  x.fillStyle = pagado ? '#16a159' : '#b86a00'; x.font = F(800, 28); x.fillText(pagado ? '✔ PAGADO' : '● APARTADO', W / 2, cy + 530);
+  // datos
+  const rows = [['Cliente', v.n], ['Teléfono', v.t], ['Premio', r.premio || '-'], ['Valor boleta', money(r.precio)], ['Juega con', r.loteria || 'Por definir'], ['Fecha sorteo', fmtFechaCorta(r.fecha)]];
+  x.textAlign = 'left'; let yy = cy + 640;
+  rows.forEach(([l, val]) => {
+    x.fillStyle = '#6b7794'; x.font = F(600, 28); x.fillText(l, cx + 60, yy);
+    x.fillStyle = '#13203d'; x.font = F(700, 32); x.textAlign = 'right';
+    let t = String(val); while (x.measureText(t).width > cw - 380 && t.length > 4) t = t.slice(0, -2); if (t !== String(val)) t += '…';
+    x.fillText(t, cx + cw - 60, yy); x.textAlign = 'left'; yy += 72;
+  });
+  x.textAlign = 'center'; x.fillStyle = '#9aa5bd'; x.font = F(500, 24);
+  x.fillText(`Código: ${v.cod || '-'}  ·  Emitida: ${new Date(v.fp || v.f || Date.now()).toLocaleDateString('es-CO')}`, W / 2, cy + ch - 40);
+  // pie
+  x.fillStyle = '#fff'; x.font = F(700, 34); x.fillText('¡Mucha suerte! 🍀', W / 2, H - 70);
+  x.fillStyle = 'rgba(255,255,255,.6)'; x.font = F(500, 22); x.fillText('Conserva esta boleta. Es tu comprobante de participación.', W / 2, H - 30);
+  return c;
+}
+async function modalBoleta(k){
+  const r = getRifa(UI.rifaId); const v = r.nums[k];
+  modal(`<h2>🎟️ Boleta ${k}</h2><div id="bPrev" class="muted" style="text-align:center;padding:30px">Generando boleta...</div>
+    <button class="btn wa block" id="bShare">📤 Enviar boleta (imagen) a ${esc(v.n.split(' ')[0])}</button>
+    <div class="row" style="margin-top:10px"><button class="btn navy" id="bText">💬 Enviar datos</button><button class="btn ghost" id="bDown">⬇️ Descargar</button></div>
+    <p class="muted" style="font-size:11px;margin-top:10px">“Enviar boleta” abre el menú de compartir: elige WhatsApp y el chat de tu cliente. “Enviar datos” abre directo su chat con la boleta en texto.</p>`);
+  const canvas = await dibujarBoleta(r, k);
+  const img = new Image(); img.className = 'boleta-prev'; img.src = canvas.toDataURL('image/png');
+  $('#bPrev').replaceWith(img);
+  const fname = `Boleta_${k}_${r.nombre.replace(/[^\w]+/g, '_')}.png`;
+  const texto = `🎟️ *BOLETA RIFA PRESTAYA* 🎟️\n\nHola ${v.n} 👋, ${v.e === 'p' ? '¡tu pago fue confirmado! ✅' : 'tu número quedó apartado.'}\n\n*Rifa:* ${r.nombre}\n*Tu número:* ${k}\n*Premio:* ${r.premio || '-'}\n*Valor:* ${money(r.precio)}\n*Juega con:* ${r.loteria || '-'}\n*Sorteo:* ${fmtFecha(r.fecha)}\n*Estado:* ${v.e === 'p' ? 'PAGADO ✅' : 'APARTADO (pendiente de pago)'}\n*Código:* ${v.cod}\n\n¡Mucha suerte! 🍀`;
+  $('#bDown').onclick = () => { const a = document.createElement('a'); a.download = fname; a.href = img.src; a.click(); };
+  $('#bText').onclick = () => openWA(v.t, texto);
+  $('#bShare').onclick = () => canvas.toBlob(async blob => {
+    const file = new File([blob], fname, { type: 'image/png' });
+    if (navigator.canShare && navigator.canShare({ files: [file] })){
+      try{ await navigator.share({ files: [file], text: texto }); }catch(e){}
+    } else { $('#bDown').click(); toast('Boleta descargada. Ahora adjúntala en el chat del cliente.', 3500); setTimeout(() => openWA(v.t, texto), 800); }
+  }, 'image/png');
+}
+
+/* ---------- Ajustes ---------- */
+function modalAjustes(){
+  modal(`
+    <h2>⚙️ Ajustes</h2>
+    <div class="field"><label>Mi WhatsApp (donde llegan las reservas)</label><input id="cWA" inputmode="tel" value="${esc(CFG.wa)}"></div>
+    <p class="muted" style="font-size:11px;margin:-6px 0 14px">Con código de país, sin + ni espacios. Ej: 573162685282</p>
+    <div class="field"><label for="cFB">Conexión en vivo (Firebase) · opcional</label><input id="cFB" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="https://tu-proyecto-default-rtdb.firebaseio.com" value="${esc(CFG.fb || '')}"></div>
+    <p class="muted" style="font-size:11px;margin:-6px 0 8px">Bloquea los números al instante para todos los clientes y te trae las reservas solas.</p>
+    <details style="margin-bottom:14px;font-size:13px"><summary style="font-weight:700;color:var(--navy3);cursor:pointer">¿Cómo la activo? (gratis, 5 minutos)</summary>
+      <ol style="padding-left:18px;margin-top:8px;line-height:1.6;color:var(--muted)">
+        <li>Entra a <b>console.firebase.google.com</b> con tu cuenta de Google y crea un proyecto.</li>
+        <li>En el menú: <b>Compilación → Realtime Database → Crear base de datos</b>. Elige la ubicación y luego <b>Modo de prueba</b>.</li>
+        <li>En la pestaña <b>Reglas</b>, borra lo que hay, pega esto y toca <b>Publicar</b>:<div class="linkbox" style="max-height:none;font-family:monospace">{"rules":{"rifasPY":{".read":true,".write":true}}}</div></li>
+        <li>Copia la dirección que aparece arriba (termina en <b>firebaseio.com</b>), pégala aquí, toca <b>Probar</b> y luego <b>Guardar</b>.</li>
+        <li>Vuelve a compartir el enlace de tus rifas.</li>
+      </ol></details>
+    <div class="row"><button class="btn ghost" onclick="probarFB()">🔌 Probar</button><button class="btn" onclick="guardarAjustes()">Guardar</button></div>
+    <h3 style="margin:20px 0 8px">Copia de seguridad</h3>
+    <p class="muted" style="margin-bottom:10px">Tus rifas se guardan en este celular. Haz copias para no perderlas o para pasarlas a otro equipo.</p>
+    <div class="row"><button class="btn navy" onclick="exportar()">⬇️ Exportar</button><button class="btn ghost" onclick="$('#fImp').click()">⬆️ Importar</button></div>
+    <input type="file" id="fImp" accept=".json,application/json" class="hidden" onchange="importar(this)">
+    <p class="muted" style="text-align:center;margin-top:18px;font-size:12px">Rifas PrestaYa ${VERSION}</p>
+  `);
+}
+function guardarAjustes(){
+  const w = $('#cWA').value.replace(/\D/g, '');
+  if (w.length < 10) return toast('Número no válido');
+  const fb = $('#cFB').value.trim().replace(/\/+$/, '');
+  if (fb && !/^https:\/\/[\w.-]+\.(firebaseio\.com|firebasedatabase\.app)$/.test(fb)) return toast('La dirección de Firebase no es válida');
+  CFG.wa = waNum(w); CFG.fb = fb; saveCfg(); closeModal(); toast('Ajustes guardados ✅');
+  if (fb) syncTodas();
+}
+async function probarFB(){
+  const fb = $('#cFB').value.trim().replace(/\/+$/, '');
+  if (!fb) return toast('Pega primero la dirección de Firebase');
+  try{ await fbReq(fb, '/rifasPY/_prueba', 'PUT', { t: Date.now() }); toast('🟢 Conexión correcta. Toca Guardar.', 3000); }
+  catch(e){ toast('🔴 No conecta. Revisa la dirección y las reglas.', 3500); }
+}
+function exportar(){
+  const blob = new Blob([JSON.stringify({ app: 'rifas-prestaya', version: VERSION, fecha: new Date().toISOString(), cfg: CFG, db: DB }, null, 1)], { type: 'application/json' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = `rifas-prestaya-${new Date().toISOString().slice(0, 10)}.json`; a.click();
+}
+function importar(inp){
+  const f = inp.files[0]; if (!f) return;
+  const rd = new FileReader();
+  rd.onload = () => {
+    try{
+      const d = JSON.parse(rd.result); if (!d.db || !Array.isArray(d.db.rifas)) throw 0;
+      askConfirm(`Se importarán <b>${d.db.rifas.length}</b> rifa(s). Las rifas con el mismo código se reemplazarán. ¿Continuar?`, 'Importar', () => {
+        d.db.rifas.forEach(r => { const i = DB.rifas.findIndex(x => x.id === r.id); i >= 0 ? DB.rifas[i] = r : DB.rifas.push(r); });
+        if (d.cfg?.wa) CFG.wa = d.cfg.wa; save(); saveCfg(); renderLista(); toast('Importación completa ✅');
+      }, false);
+    }catch(e){ toast('Archivo no válido'); }
+  };
+  rd.readAsText(f);
+}
+function exportCSV(){
+  const r = getRifa(UI.rifaId);
+  const rows = [['Numero', 'Nombre', 'Telefono', 'Estado', 'Codigo', 'Fecha']].concat(Object.entries(r.nums).sort().map(([k, v]) => [k, v.n, v.t, v.e === 'p' ? 'Pagado' : 'Apartado', v.cod || '', new Date(v.f).toLocaleDateString('es-CO')]));
+  const csv = '﻿' + rows.map(x => x.map(c => `"${String(c).replace(/"/g, '""')}"`).join(';')).join('\n');
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([csv], { type: 'text/csv' })); a.download = `participantes-${r.nombre.replace(/[^\w]+/g, '_')}.csv`; a.click();
+}
+
+/* =========================================================
+   CLIENTE
+   ========================================================= */
+let C = null; const CSEL = new Set(); let PREVIEW = false;
+function verComoCliente(){
+  const raw = linkRifa(getRifa(UI.rifaId)).split('#r=')[1];
+  closeModal(); PREVIEW = true; CSEL.clear();
+  $('#admin').classList.add('hidden'); initCliente(raw); window.scrollTo(0, 0);
+}
+function salirPreview(){
+  PREVIEW = false; CSEL.clear(); closeModal();
+  $('#cliente').classList.add('hidden'); $('#cliente').innerHTML = ''; $('#admin').classList.remove('hidden'); renderDetalle(); window.scrollTo(0, 0);
+}
+function minesGet(){ return ls.get(KEY_MINE, {}); }
+
+let C_TIMER = null;
+function initCliente(raw){
+  try{ C = JSON.parse(b64urlDecode(raw)); }catch(e){ C = null; }
+  const el = $('#cliente'); el.classList.remove('hidden');
+  if (!C || !C.c){ el.innerHTML = `<div class="wrap"><div class="card empty" style="margin-top:40px"><div class="big">😕</div><h2>Enlace no válido</h2><p class="muted">Pide a PrestaYa que te envíe nuevamente el enlace de la rifa.</p></div></div>`; return; }
+  C.size = Math.pow(10, C.c); C.taken = bitsetDecode(C.b, C.size); C.soloLibres = false;
+  document.title = C.n + ' · Rifas PrestaYa';
+  renderCliente();
+  clearInterval(C_TIMER);
+  if (C.u && !PREVIEW){ syncCliente(); C_TIMER = setInterval(() => { if (!document.hidden) syncCliente(); }, 8000); }
+}
+function cTaken(k){ return C.taken.has(+k); }
+function cMine(){ return PREVIEW ? [] : (minesGet()[C.i] || []); }
+function cellCls(k, mineSet){ return mineSet.has(k) ? 'mine' : cTaken(k) ? 'x' : CSEL.has(k) ? 'sel' : ''; }
+function updateCell(k){
+  const b = document.querySelector(`#cGrid [data-k="${k}"]`); if (!b) return;
+  b.className = 'num ' + cellCls(k, new Set(cMine()));
+}
+function updateCount(){
+  const el = $('#cDisp'); if (el) el.textContent = `${(C.size - C.taken.size).toLocaleString('es-CO')} de ${C.size.toLocaleString('es-CO')}`;
+}
+function setLive(on){ const el = $('#cLive'); if (el) el.innerHTML = on ? '🟢 Disponibilidad en tiempo real' : '⚪ Verificando disponibilidad…'; }
+
+async function syncCliente(){
+  try{
+    const d = await fetch(`${C.u}/rifasPY/${C.i}/nums.json?shallow=true`, { cache: 'no-store' }).then(r => { if (!r.ok) throw 0; return r.json(); });
+    const remote = new Set(Object.keys(d || {}).map(k => +k.replace(/^n/, '')));
+    cMine().forEach(k => remote.add(+k));
+    const cambiados = [];
+    remote.forEach(n => { if (!C.taken.has(n)) cambiados.push(n); });
+    C.taken.forEach(n => { if (!remote.has(n)) cambiados.push(n); });
+    C.taken = remote;
+    cambiados.forEach(n => {
+      const k = pad(n, C.c);
+      if (CSEL.has(k) && C.taken.has(n)){ CSEL.delete(k); toast(`⛔ El número ${k} lo acaba de apartar otra persona`, 3500); }
+      updateCell(k);
+    });
+    if (cambiados.length){ updateCount(); renderSelBar(); }
+    setLive(true);
+  }catch(e){ setLive(false); }
+}
+
+function renderCliente(){
+  const mineSet = new Set(cMine());
+  let cells = '';
+  for (let i = 0; i < C.size; i++){ const k = pad(i, C.c); cells += `<button class="num ${cellCls(k, mineSet)}" data-k="${k}">${k}</button>`; }
+  $('#cliente').innerHTML = `
+    ${PREVIEW ? `<div style="position:sticky;top:0;z-index:60;background:#ffc83d;color:#0b1f4b;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;display:flex;align-items:center;justify-content:space-between;gap:10px;font-weight:700;font-size:13px">👁️ Vista previa del cliente<button class="btn navy sm" onclick="salirPreview()">← Volver al panel</button></div>` : ''}
+    <section class="hero">
+      <div class="logo">Presta<b>Ya</b></div>
+      <div style="font-size:12px;letter-spacing:3px;color:var(--gold);font-weight:700;position:relative;z-index:1">R I F A S</div>
+      <h1>${esc(C.n)}</h1>
+      ${C.p ? `<div class="prize">🏆 ${esc(C.p)}</div>` : ''}
+    </section>
+    <main class="wrap">
+      <div class="card info-card">
+        <div class="info-grid">
+          <div><span>💵 Valor boleta</span><b>${money(C.v)}</b></div>
+          <div><span>📅 Fecha sorteo</span><b>${fmtFechaCorta(C.f)}</b></div>
+          <div><span>🎲 Juega con</span><b>${esc(C.l || 'Por definir')}</b></div>
+          <div><span>🔢 Disponibles</span><b id="cDisp"></b></div>
+        </div>
+        ${C.d ? `<p class="muted" style="margin-top:12px">📌 ${esc(C.d)}</p>` : ''}
+        ${C.u && !PREVIEW ? `<p class="muted" id="cLive" style="margin-top:10px;font-size:12px">⚪ Verificando disponibilidad…</p>` : ''}
+      </div>
+      ${mineSet.size ? `<div class="card" style="background:#0b1f4b;color:#fff"><h3>⭐ Tus números reservados</h3><p style="font-size:22px;font-weight:800;letter-spacing:1px;margin-top:4px">${[...mineSet].join(' · ')}</p><p style="font-size:12px;opacity:.75;margin-top:4px">Pendientes de confirmación de pago por PrestaYa.</p></div>` : ''}
+      <div class="card">
+        <h3>👇 Elige tu número favorito</h3>
+        <p class="muted" style="margin-bottom:12px">Desliza el panel para ver todos los números. Toca uno o varios y luego <b>Continuar</b>.</p>
+        <div class="row" style="margin-bottom:10px">
+          <input id="cGo" class="search" style="margin:0" type="search" inputmode="numeric" maxlength="${C.c}" placeholder="🔍 Buscar ${'0'.repeat(C.c)}">
+          <button class="btn navy sm" style="flex:0 0 auto" onclick="cIr()">Ir</button>
+          <button class="btn gold sm" style="flex:0 0 auto" onclick="cAzar()">🎲</button>
+        </div>
+        <div class="chips">
+          <button class="chip on" id="chTodos" onclick="cSolo(false)">Todos</button>
+          <button class="chip" id="chLibres" onclick="cSolo(true)">Solo disponibles</button>
+        </div>
+        <div class="legend"><span><i></i>Disponible</span><span><i style="background:var(--gold);border-color:#e8a900"></i>Tu selección</span><span><i style="background:#ffe3e6;border-color:var(--red)"></i>🔒 No disponible</span>${mineSet.size ? '<span><i style="background:var(--navy);border-color:var(--navy)"></i>Tuyo</span>' : ''}</div>
+        <div class="gridbox" id="cBox"><div class="grid c${C.c}" id="cGrid">${cells}</div></div>
+      </div>
+      <div class="foot">Rifas PrestaYa · ${VERSION}<br>Tus datos se envían únicamente al WhatsApp de PrestaYa.</div>
+    </main>
+    <div id="selBar"></div>`;
+  updateCount(); renderSelBar(); if (C.u && !PREVIEW) syncCliente();
+  $('#cGrid').onclick = e => { const b = e.target.closest('.num'); if (b) cToggle(b.dataset.k, b); };
+  $('#cGo').onkeydown = e => { if (e.key === 'Enter') cIr(); };
+}
+function renderSelBar(){
+  const el = $('#selBar'); if (!el) return;
+  el.innerHTML = CSEL.size ? `<div class="sticky-sel">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px"><b>${CSEL.size} número${CSEL.size > 1 ? 's' : ''} · ${money(C.v * CSEL.size)}</b><button class="btn ghost sm" onclick="cLimpiar()">Limpiar</button></div>
+      <div class="sel-nums">${[...CSEL].sort().map(k => `<span>${k}</span>`).join('')}</div>
+      <button class="btn block" onclick="cForm()">Continuar ➜</button>
+    </div>` : '';
+}
+function cLimpiar(){ const ks = [...CSEL]; CSEL.clear(); ks.forEach(updateCell); renderSelBar(); }
+function cSolo(on){
+  $('#cGrid').classList.toggle('only-free', on);
+  $('#chTodos').classList.toggle('on', !on); $('#chLibres').classList.toggle('on', on);
+  $('#cBox').scrollTop = 0;
+}
+function shake(b){ b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); }
+function cToggle(k, b){
+  if (cMine().includes(k)){ shake(b); return toast(`⭐ El número ${k} ya es tuyo`); }
+  if (cTaken(k)){
+    shake(b); if (navigator.vibrate) navigator.vibrate([30, 40, 30]);
+    return toast(`⛔ El número ${k} ya fue elegido. No disponible, elige otro.`, 2800);
+  }
+  if (CSEL.has(k)) CSEL.delete(k);
+  else { if (CSEL.size >= MAX_SEL) return toast(`Máximo ${MAX_SEL} números por reserva`); CSEL.add(k); if (navigator.vibrate) navigator.vibrate(15); }
+  updateCell(k); renderSelBar();
+}
+function cIr(){
+  const v = $('#cGo').value.replace(/\D/g, '');
+  if (!v || v.length > C.c) return toast(`Escribe un número de hasta ${C.c} cifras`);
+  const k = pad(v, C.c);
+  if (cTaken(k) || cMine().includes(k)){ cSolo(false); toast(`⛔ El número ${k} no está disponible`); }
+  setTimeout(() => scrollToNum($('#cBox'), k), 30);
+}
+function cAzar(){
+  const mineSet = new Set(cMine());
+  if (C.size - C.taken.size - CSEL.size <= 0) return toast('No quedan números disponibles');
+  let k, tries = 0;
+  do { k = pad(Math.floor(Math.random() * C.size), C.c); tries++; } while ((cTaken(k) || CSEL.has(k) || mineSet.has(k)) && tries < 50000);
+  CSEL.add(k); updateCell(k); renderSelBar();
+  setTimeout(() => scrollToNum($('#cBox'), k), 30); toast('🎲 Te salió el ' + k);
+}
+function cForm(){
+  const nums = [...CSEL].sort();
+  const prev = ls.get('rifasPY_cliente', {});
+  modal(`
+    <h2>📝 Tus datos</h2>
+    <div style="background:#f4f7fc;border-radius:14px;padding:12px;margin-bottom:14px">
+      <div class="muted">${esc(C.n)}</div>
+      <div style="font-size:24px;font-weight:900;color:var(--navy);letter-spacing:1px">${nums.join(' · ')}</div>
+      <div class="muted">Total: <b style="color:var(--green2)">${money(C.v * nums.length)}</b></div>
+    </div>
+    <div class="field"><label for="cNom">Nombre completo</label><input id="cNom" maxlength="50" autocomplete="name" placeholder="Tu nombre y apellido" value="${esc(prev.n || '')}"></div>
+    <div class="field"><label for="cTel">Teléfono / WhatsApp</label><input id="cTel" inputmode="tel" maxlength="13" autocomplete="tel" placeholder="3001234567" value="${esc(prev.t || '')}"></div>
+    <button class="btn wa block" id="cSend" style="padding:16px;font-size:16px" onclick="cEnviar()">${WA_SVG} Enviar a WhatsApp</button>
+    <p class="muted" style="font-size:11px;margin-top:10px;text-align:center">Tu número queda apartado y bloqueado para los demás. PrestaYa confirmará tu pago y te enviará tu boleta.</p>
+    ${C.g ? `<div class="note">💳 Medios de pago: <b>${esc(C.g)}</b></div>` : ''}
+  `);
+}
+const WA_SVG = `<svg width="22" height="22" viewBox="0 0 24 24" fill="#fff" aria-hidden="true"><path d="M17.5 14.4c-.3-.1-1.8-.9-2-1-.3-.1-.5-.1-.7.1-.2.3-.8 1-.9 1.2-.2.2-.3.2-.6.1-.3-.1-1.3-.5-2.4-1.5-.9-.8-1.5-1.8-1.7-2.1-.2-.3 0-.5.1-.6l.4-.5c.2-.2.2-.3.3-.5.1-.2 0-.4 0-.5l-.9-2.2c-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.5s1.1 2.9 1.2 3.1c.1.2 2.1 3.2 5.1 4.5 2.5 1 3 .8 3.6.7.6-.1 1.8-.7 2-1.4.2-.7.2-1.3.2-1.4-.1-.1-.3-.2-.6-.4zM12 2a10 10 0 0 0-8.6 15.1L2 22l5-1.3A10 10 0 1 0 12 2z"/></svg>`;
+
+async function cEnviar(){
+  const n = $('#cNom').value.trim().replace(/[|#]/g, ''); const t = $('#cTel').value.replace(/\D/g, '');
+  if (n.length < 3) return toast('Escribe tu nombre completo');
+  if (t.length < 10) return toast('Escribe un teléfono de 10 dígitos');
+  const nums = [...CSEL].sort();
+  ls.set('rifasPY_cliente', { n, t });
+  const live = C.u && !PREVIEW;
+  if (live){
+    const btn = $('#cSend'); btn.disabled = true; btn.textContent = 'Apartando tus números…';
+    try{
+      const d = await fetch(`${C.u}/rifasPY/${C.i}/nums.json?shallow=true`, { cache: 'no-store' }).then(r => { if (!r.ok) throw 0; return r.json(); }) || {};
+      const ocup = nums.filter(k => d['n' + k]);
+      if (ocup.length){
+        ocup.forEach(k => { CSEL.delete(k); C.taken.add(+k); updateCell(k); }); updateCount(); renderSelBar();
+        return showMsg(`⛔ Lo sentimos, ${ocup.length > 1 ? 'los números' : 'el número'} <b>${ocup.join(', ')}</b> ya ${ocup.length > 1 ? 'fueron apartados' : 'fue apartado'} por otra persona hace un momento.<br><br>${CSEL.size ? 'Tus otros números siguen seleccionados.' : 'Elige otro número.'}`);
+      }
+      const body = {}; nums.forEach(k => body['n' + k] = { n, t, e: 'r', f: Date.now() });
+      await fetch(`${C.u}/rifasPY/${C.i}/nums.json`, { method: 'PATCH', body: JSON.stringify(body) });
+    }catch(e){ /* sin conexión: la reserva sigue por WhatsApp */ }
+  }
+  if (PREVIEW){
+    // En la vista previa se simula la reserva en vivo: queda registrada en el panel
+    const r = getRifa(C.i);
+    if (r){ nums.forEach(k => { if (!r.nums[k]) r.nums[k] = { n, t, e: 'r', f: Date.now(), cod: 'PY-' + uid().toUpperCase().slice(0, 6), web: 1 }; }); save(); }
+  } else {
+    const m = minesGet(); m[C.i] = [...new Set([...(m[C.i] || []), ...nums])].sort(); ls.set(KEY_MINE, m);
+  }
+  nums.forEach(k => C.taken.add(+k));
+  CSEL.clear();
+  const msg = `🎟️ *NUEVA RESERVA - RIFA PRESTAYA*\n\n*Rifa:* ${C.n}\n*Número(s):* ${nums.join(', ')}\n*Nombre:* ${n}\n*Teléfono:* ${t}\n*Valor:* ${money(C.v * nums.length)}\n\nQuiero participar, ¿cómo realizo el pago? 🙌\n\n#PY|${C.i}|${nums.join(',')}|${n}|${t}`;
+  const waUrl = 'https://wa.me/' + waNum(C.w || DEFAULT_WA) + '?text=' + encodeURIComponent(msg);
+  if (!live) openURL(waUrl);
+  modal(`<div class="success"><div class="ic">✓</div><h2>¡Apartado, ${esc(n.split(' ')[0])}!</h2>
+    <p class="muted" style="margin:8px 0 6px">${nums.length > 1 ? 'Tus números' : 'Tu número'} <b style="color:var(--navy);font-size:18px">${nums.join(', ')}</b> ya ${nums.length > 1 ? 'quedaron bloqueados' : 'quedó bloqueado'} para los demás.</p>
+    <p class="muted" style="margin-bottom:14px">${live ? 'Ahora toca el botón para enviarnos tus datos por WhatsApp.' : 'Envía el mensaje que se abrió en WhatsApp.'} Cuando confirmemos tu pago recibirás tu boleta.</p>
+    <a class="btn wa block" href="${waUrl}" target="_blank" rel="noopener">${WA_SVG} ${live ? 'Enviar a WhatsApp' : 'Abrir WhatsApp de nuevo'}</a>
+    <button class="btn ghost block" style="margin-top:10px" onclick="closeModal()">Volver a la rifa</button></div>`, () => renderCliente());
+}
+
+/* =========================================================
+   ARRANQUE
+   ========================================================= */
+function route(){
+  const h = location.hash;
+  if (h.startsWith('#r=')){ $('#admin').classList.add('hidden'); initCliente(h.slice(3)); }
+  else { $('#cliente').classList.add('hidden'); $('#admin').classList.remove('hidden'); $('#verTxt').textContent = VERSION; renderLista(); if (fbBase()) syncTodas(); }
+}
+window.addEventListener('hashchange', () => { closeModal(); route(); });
+$('#fabNew').onclick = () => formRifa();
+$('#btnMenu').onclick = modalAjustes;
+
+let deferredPrompt;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; $('#btnInstall').classList.remove('hidden'); });
+$('#btnInstall').onclick = async () => { if (!deferredPrompt) return; deferredPrompt.prompt(); await deferredPrompt.userChoice; deferredPrompt = null; $('#btnInstall').classList.add('hidden'); };
+if ('serviceWorker' in navigator && location.protocol !== 'file:') navigator.serviceWorker.register('sw.js').catch(() => {});
+
+route();
+</script>
+</body>
+</html>
