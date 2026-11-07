@@ -367,7 +367,7 @@ button.kpi span:after{content:" ›";opacity:.8}
 /* =========================================================
    RIFAS PRESTAYA  ·  v1.0
    ========================================================= */
-const VERSION = 'v2.6';
+const VERSION = 'v2.9';
 const DEFAULT_WA = '573162685282';
 const KEY = 'rifasPY_data_v1';
 const KEY_CFG = 'rifasPY_cfg_v1';
@@ -1105,15 +1105,35 @@ async function dibujarBoleta(r, keys){
     const tot = measure(), tX = right - tot, tY = ty + 112;
     x.textAlign = 'left'; x.fillStyle = INK; x.font = M(800, bs); sp(-1); x.fillText(w1, tX, tY); sp(0);
     if (rest){ const aw = (x.font = M(800, bs), x.measureText(w1).width); x.fillStyle = GRAY; x.font = S(ss); x.fillText(rest, tX + aw + 4, tY + ss * 0.08); }
-    // fecha y lotería
-    x.textAlign = 'right'; x.fillStyle = '#2a2a2c';
-    const f1 = fechaLarga(r.fecha), f2 = (r.loteria ? 'JUEGA CON ' + r.loteria : 'LOTERÍA POR DEFINIR').toUpperCase();
-    fit(f1, s => M(600, s), 46, maxT, 24); x.fillText(f1, right, ty + 196);
-    fit(f2, s => M(600, s), 40, maxT, 20); x.fillText(f2, right, ty + 246);
+    // PREMIO (protagonista, en el centro)
+    x.textAlign = 'right';
+    x.fillStyle = GRAY2; x.font = M(700, 15); sp(3.5); x.fillText('PREMIO', right + 3, ty + 160); sp(0);
+    const prem = String(r.premio || 'Por definir').toUpperCase();
+    x.fillStyle = INK;
+    let ps = 46; x.font = M(800, ps);
+    while (x.measureText(prem).width > maxT && ps > 34){ ps -= 1; x.font = M(800, ps); }
+    if (x.measureText(prem).width <= maxT){ x.fillText(prem, right, ty + 222); }
+    else {
+      // dos líneas
+      const pw = prem.split(' '); let lines;
+      const split = sz => { x.font = M(800, sz); const out = []; let cur = '';
+        pw.forEach(w => { const t = cur ? cur + ' ' + w : w; if (x.measureText(t).width > maxT && cur){ out.push(cur); cur = w; } else cur = t; });
+        if (cur) out.push(cur); return out; };
+      ps = 40; lines = split(ps);
+      while ((lines.length > 2 || lines.some(l => x.measureText(l).width > maxT)) && ps > 22){ ps -= 1; lines = split(ps); }
+      lines = lines.slice(0, 2);
+      x.fillText(lines[0], right, ty + 206); if (lines[1]) x.fillText(lines[1], right, ty + 206 + ps * 1.12);
+    }
     x.fillStyle = GRAY; x.fillRect(right - 104, ty + 268, 104, 5);
-    // premio y cliente
-    const pr = 'PREMIO: ' + String(r.premio || 'Por definir').toUpperCase();
-    x.fillStyle = INK; fit(pr, s => M(700, s), 20, right - 290 + 40, 12); x.fillText(pr, right, ty + 306);
+    // fecha y lotería (abajo) con cápsula clara "SORTEO EL"
+    const fl = (fechaLarga(r.fecha) + '  ·  ' + (r.loteria ? 'JUEGA CON ' + r.loteria : 'LOTERÍA POR DEFINIR')).toUpperCase();
+    x.font = M(700, 12.5); sp(2); const cwid = x.measureText('SORTEO EL').width + 24; sp(0);
+    const fs2 = fit(fl, s => M(700, s), 19, maxT + 40 - cwid - 10, 12);
+    const flw = x.measureText(fl).width;
+    x.fillStyle = INK; x.fillText(fl, right, ty + 306);
+    const px0 = right - flw - 10 - cwid;
+    x.fillStyle = '#e4ecf8'; roundRect(x, px0, ty + 306 - fs2 * 0.72 - 7, cwid, fs2 * 0.72 + 14, (fs2 * 0.72 + 14) / 2); x.fill();
+    x.fillStyle = '#12306b'; x.font = M(700, 12.5); sp(2); x.textAlign = 'center'; x.fillText('SORTEO EL', px0 + cwid / 2 + 1, ty + 306 - fs2 * 0.36 + 4.5); sp(0); x.textAlign = 'right';
     const est = v.e === 'p' ? 'PAGADO' : 'APARTADO';
     const cl = `${String(v.n).toUpperCase()} · ${v.t} · ${est}`;
     x.fillStyle = GRAY2; fit(cl, s => M(600, s), 16, right - 290 + 40, 11); x.fillText(cl, right, ty + 334);
