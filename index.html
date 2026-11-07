@@ -187,20 +187,140 @@ h3{font-size:15px;font-weight:700}
 .success .ic{width:80px;height:80px;border-radius:50%;background:#e2f7ec;color:var(--green2);font-size:42px;display:grid;place-items:center;margin:0 auto 12px}
 .note{background:#fff8e6;border-left:4px solid var(--gold);padding:10px 12px;border-radius:10px;font-size:12px;color:#7a5a00;margin-top:10px}
 .foot{text-align:center;font-size:11px;color:var(--muted);padding:16px 0 180px}
+
+/* ===== v2.1 · Capa de diseño ===== */
+:root{--bg:#f2f4f8;--ink:#0f1a3a;--soft:#f6f8fb;--line:#e5e9f1;--muted:#6a7590;--r:20px}
+html,body{font-family:'Inter',system-ui,-apple-system,sans-serif;background:var(--bg);color:var(--ink)}
+h1,h2,.logo,.big-num,.num,.disp{font-family:'Poppins','Inter',sans-serif}
+h2{font-size:19px;font-weight:700;letter-spacing:-.2px}
+h3{font-size:15px;font-weight:700;letter-spacing:-.1px}
+.ic{width:18px;height:18px;flex-shrink:0;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;vertical-align:-3px}
+.ic.sm{width:14px;height:14px;vertical-align:-2px}
+.ic.lg{width:22px;height:22px}
+.btn{font-weight:600;letter-spacing:-.1px;border-radius:14px;box-shadow:0 1px 0 rgba(255,255,255,.25) inset}
+.btn.ghost{background:#fff;color:var(--ink);box-shadow:0 0 0 1px var(--line) inset}
+.card{border-radius:var(--r);box-shadow:0 1px 2px rgba(15,26,58,.04),0 6px 20px rgba(15,26,58,.05);border:1px solid #edf0f5}
+
+/* encabezado */
+.top{background:radial-gradient(120% 140% at 100% 0%,#1d4597 0%,#0f2a63 45%,#0b1f4b 100%);padding:calc(14px + env(safe-area-inset-top)) max(18px,env(safe-area-inset-right)) 74px max(18px,env(safe-area-inset-left));border-radius:0 0 30px 30px}
+.top:after{width:260px;height:260px;right:-90px;top:-110px;background:radial-gradient(circle,rgba(31,191,106,.28),rgba(31,191,106,0) 70%)}
+.top:before{content:"";position:absolute;left:-70px;bottom:-90px;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(255,200,61,.16),rgba(255,200,61,0) 70%)}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:10px;position:relative;z-index:2;min-height:42px}
+.brand .logo{font-size:22px;font-weight:800}
+.brand .tag{font-size:10px;padding:3px 8px;letter-spacing:1px}
+.top .actions{position:static;display:flex;gap:8px}
+.iconbtn{width:42px;height:42px;border-radius:14px;background:rgba(255,255,255,.12);box-shadow:0 0 0 1px rgba(255,255,255,.12) inset;backdrop-filter:blur(6px)}
+.iconbtn .ic{width:20px;height:20px}
+.hello{position:relative;z-index:1;margin-top:18px}
+.hello h1{font-size:28px;font-weight:700;letter-spacing:-.6px;line-height:1.15;text-wrap:balance}
+.top .sub{font-size:13px;opacity:.72;margin-top:4px}
+.ver{display:inline-block;margin-top:8px;font-size:10px;font-weight:600;opacity:.75;background:rgba(255,255,255,.1);padding:2px 8px;border-radius:20px;letter-spacing:.4px}
+
+/* resumen dentro del encabezado */
+.kpis{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px;position:relative;z-index:1}
+.kpi{background:rgba(255,255,255,.09);border:1px solid rgba(255,255,255,.12);border-radius:16px;padding:10px 10px 9px;min-width:0}
+.kpi span{display:block;font-size:10.5px;font-weight:600;opacity:.7;text-transform:uppercase;letter-spacing:.6px}
+.kpi b{display:block;font-family:'Poppins',sans-serif;font-size:17px;font-weight:700;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+
+/* cápsulas */
+.caps{display:flex;gap:6px;background:#fff;border-radius:18px;padding:5px;box-shadow:0 10px 30px rgba(15,26,58,.12);margin:-58px 0 16px;position:relative;z-index:3;border:1px solid #edf0f5}
+.caps button{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:12px 8px;border-radius:14px;background:none;font-weight:600;font-size:14px;color:var(--muted);transition:background .2s,color .2s}
+.caps button .cnt{min-width:22px;height:22px;padding:0 6px;border-radius:11px;background:#eef1f6;color:var(--muted);font-size:12px;font-weight:700;display:grid;place-items:center;font-variant-numeric:tabular-nums}
+.caps button.on{background:var(--ink);color:#fff;box-shadow:0 6px 16px rgba(15,26,58,.25)}
+.caps button.on .cnt{background:var(--green);color:#fff}
+.sec-h{display:flex;align-items:baseline;justify-content:space-between;margin:4px 2px 10px}
+.sec-h h3{font-size:13px;text-transform:uppercase;letter-spacing:.8px;color:var(--muted);font-weight:700}
+.sec-h span{font-size:12px;color:var(--muted)}
+
+/* tarjeta de rifa */
+.rc{display:block;width:100%;text-align:left;background:#fff;border:1px solid #edf0f5;border-radius:22px;padding:16px;margin-bottom:12px;box-shadow:0 1px 2px rgba(15,26,58,.04),0 8px 22px rgba(15,26,58,.05);color:inherit;font:inherit;position:relative;overflow:hidden;transition:transform .12s}
+.rc:active{transform:scale(.985)}
+.rc:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.rc-top{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.tagc{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:4px 9px;border-radius:20px;letter-spacing:.2px;white-space:nowrap}
+.tagc.dig{background:#eef2fb;color:#1c3f8a}
+.tagc.ok{background:#e3f6ec;color:#11804a}.tagc.ok:before{content:"";width:6px;height:6px;border-radius:50%;background:#1fbf6a;box-shadow:0 0 0 3px rgba(31,191,106,.18)}
+.tagc.warn{background:#fff3df;color:#9a5a00}
+.tagc.off{background:#eef0f4;color:#5b667f}
+.tagc.win{background:#fff6d6;color:#8a6200}
+.rc-chev{margin-left:auto;color:#b4bccb}
+.rc h3{font-family:'Poppins',sans-serif;font-size:18px;font-weight:700;letter-spacing:-.3px;line-height:1.25;margin-bottom:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rc .prize{display:flex;align-items:center;gap:6px;font-size:13.5px;color:#11804a;font-weight:600;margin-bottom:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rc-meta{display:flex;gap:14px;flex-wrap:wrap;font-size:12.5px;color:var(--muted);margin-bottom:12px}
+.rc-meta span{display:inline-flex;align-items:center;gap:5px}
+.rc-prog{display:flex;align-items:center;gap:10px}
+.rc-prog .bar{flex:1;height:7px;background:#eef1f6;border-radius:8px;overflow:hidden}
+.rc-prog .bar i{display:block;height:100%;border-radius:8px;background:linear-gradient(90deg,#1fbf6a,#7dd99f)}
+.rc-prog small{font-size:12px;color:var(--muted);font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.rc.done{background:linear-gradient(180deg,#fff,#fafbfd)}
+.rc.done .rc-prog .bar i{background:#c3cad8}
+.winbox{display:flex;align-items:center;gap:12px;background:#fff9e6;border:1px solid #fbe7ad;border-radius:16px;padding:10px 12px;margin-top:12px}
+.winbox .wn{font-family:'Poppins',sans-serif;font-weight:800;font-size:18px;background:#ffc83d;color:#0b1f4b;border-radius:11px;padding:4px 10px;letter-spacing:1px}
+.winbox b{display:block;font-size:13.5px}.winbox span{font-size:12px;color:#7a5a00}
+
+.empty{padding:36px 22px}
+.empty .art{width:84px;height:84px;margin:0 auto 14px;border-radius:26px;background:linear-gradient(135deg,#e7f8ef,#eef2fb);display:grid;place-items:center;color:#1c3f8a}
+.empty .art .ic{width:38px;height:38px}
+.empty h2{margin-bottom:6px}
+
+.fab{display:inline-flex;align-items:center;gap:8px;font-weight:700;padding:15px 22px 15px 18px;border-radius:20px;background:linear-gradient(180deg,#26c873,#17a85b);box-shadow:0 12px 28px rgba(23,168,91,.38),0 1px 0 rgba(255,255,255,.3) inset;right:max(18px,env(safe-area-inset-right))}
+.fab .ic{width:20px;height:20px;stroke-width:2.5}
+
+/* detalle */
+.dhead{background:#fff;border:1px solid #edf0f5;border-radius:24px;padding:18px;margin:-58px 0 14px;position:relative;z-index:3;box-shadow:0 10px 30px rgba(15,26,58,.10)}
+.dhead .rc-top{margin-bottom:8px}
+.dhead h2{font-size:21px;letter-spacing:-.4px;line-height:1.2;text-wrap:balance}
+.dgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:14px}
+.dgrid div{background:var(--soft);border-radius:14px;padding:10px;min-width:0}
+.dgrid span{display:block;font-size:10.5px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.dgrid b{display:block;font-family:'Poppins',sans-serif;font-size:16px;font-weight:700;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.dgrid .g b{color:#11804a}.dgrid .o b{color:#c27400}
+.acts{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.tabs{background:#e8ecf3;border-radius:16px;padding:4px}
+.tabs button{border-radius:12px;font-weight:600;font-size:13.5px}
+.tabs button.on{color:var(--ink);box-shadow:0 2px 10px rgba(15,26,58,.08)}
+.banner-off{display:flex;gap:12px;align-items:center;background:#eef0f4;border-radius:16px;padding:12px 14px;margin-bottom:14px;font-size:13px;color:#3d4760}
+.banner-off b{display:block;color:var(--ink)}
+.banner-off .btn{margin-left:auto;flex-shrink:0}
+.endbox{border-top:1px solid var(--line);margin-top:16px;padding-top:16px}
 </style>
 </head>
 <body>
 
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></symbol>
+  <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></symbol>
+  <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="3"/><path d="M8 3v4M16 3v4M3 10h18"/></symbol>
+  <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 0 2-2h14a2 2 0 0 0 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 0-2 2H5a2 2 0 0 0-2-2v-2a2 2 0 0 0 0-4V8z"/><path d="M13 6v12" stroke-dasharray="2 2"/></symbol>
+  <symbol id="i-users" viewBox="0 0 24 24"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20a6.5 6.5 0 0 1 13 0M16 4.5a3.5 3.5 0 0 1 0 7M21.5 20a6.5 6.5 0 0 0-4-6"/></symbol>
+  <symbol id="i-dice" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="4"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></symbol>
+  <symbol id="i-share" viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></symbol>
+  <symbol id="i-inbox" viewBox="0 0 24 24"><path d="M12 3v10M8 9l4 4 4-4"/><path d="M3 14h5l1.5 3h5L16 14h5v5a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-5z"/></symbol>
+  <symbol id="i-edit" viewBox="0 0 24 24"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z"/></symbol>
+  <symbol id="i-flag" viewBox="0 0 24 24"><path d="M4 22V4M4 4h12l-2 4 2 4H4"/></symbol>
+  <symbol id="i-archive" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="5" rx="1.5"/><path d="M5 9v10a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V9M10 13h4"/></symbol>
+  <symbol id="i-play" viewBox="0 0 24 24"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5"/></symbol>
+</svg>
 <!-- ===================== ADMIN ===================== -->
 <div id="admin" class="hidden">
   <header class="top">
-    <div class="brand"><button type="button" class="iconbtn hidden" id="btnBack" aria-label="Volver a mis rifas" onclick="renderLista()" style="font-size:22px;font-weight:800">←</button><span class="logo">Presta<b>Ya</b></span><span class="tag">RIFAS</span></div>
-    <div class="sub" id="topSub">Crea, administra y comparte tus rifas</div>
-    <div class="ver" id="verTxt"></div>
-    <div class="actions">
-      <button class="iconbtn hidden" id="btnInstall" title="Instalar">⬇️</button>
-      <button class="iconbtn" id="btnMenu" title="Ajustes">⚙️</button>
+    <div class="topbar">
+      <div class="brand"><button type="button" class="iconbtn hidden" id="btnBack" aria-label="Volver a mis rifas" onclick="renderLista();window.scrollTo(0,0)"><svg class="ic"><use href="#i-back"/></svg></button><span class="logo">Presta<b>Ya</b></span><span class="tag">RIFAS</span></div>
+      <div class="actions">
+        <button class="iconbtn hidden" id="btnInstall" aria-label="Instalar app"><svg class="ic"><use href="#i-down"/></svg></button>
+        <button class="iconbtn" id="btnMenu" aria-label="Ajustes"><svg class="ic"><use href="#i-gear"/></svg></button>
+      </div>
     </div>
+    <div class="hello">
+      <h1 id="topTitle">Mis rifas</h1>
+      <div class="sub" id="topSub">Crea, administra y comparte tus rifas</div>
+    </div>
+    <div class="kpis" id="topKpis"></div>
+    <span class="ver hidden" id="verTxt"></span>
   </header>
 
   <!-- Vista lista -->
@@ -209,7 +329,7 @@ h3{font-size:15px;font-weight:700}
   <!-- Vista detalle -->
   <main class="wrap hidden" id="vDetalle"></main>
 
-  <button class="fab" id="fabNew">＋ Nueva rifa</button>
+  <button class="fab" id="fabNew"><svg class="ic"><use href="#i-plus"/></svg>Nueva rifa</button>
 </div>
 
 <!-- ===================== CLIENTE ===================== -->
@@ -221,7 +341,7 @@ h3{font-size:15px;font-weight:700}
 /* =========================================================
    RIFAS PRESTAYA  ·  v1.0
    ========================================================= */
-const VERSION = 'v2.0';
+const VERSION = 'v2.1';
 const DEFAULT_WA = '573162685282';
 const KEY = 'rifasPY_data_v1';
 const KEY_CFG = 'rifasPY_cfg_v1';
@@ -295,36 +415,68 @@ function stats(r){
   return { t, p, a, d: t - p - a, rec: p * r.precio, porCobrar: a * r.precio, pct: ((p + a) / t) * 100 };
 }
 
-function renderLista(){
-  $('#vLista').classList.remove('hidden'); $('#vDetalle').classList.add('hidden'); $('#fabNew').classList.remove('hidden'); $('#btnBack').classList.add('hidden'); UI.rifaId = null;
-  $('#topSub').textContent = 'Crea, administra y comparte tus rifas';
-  const el = $('#vLista');
-  if (!DB.rifas.length){
-    el.innerHTML = `<div class="card empty"><div class="big">🎟️</div><h2>Aún no tienes rifas</h2><p class="muted" style="margin:8px 0 18px">Crea tu primera rifa de 2, 3 o 4 cifras y compártela con tus clientes por WhatsApp.</p><button class="btn block" onclick="formRifa()">＋ Crear mi primera rifa</button></div>`;
-    return;
-  }
-  const g = DB.rifas.reduce((a, r) => { const s = stats(r); a.rec += s.rec; a.pc += s.porCobrar; a.v += s.p + s.a; return a; }, { rec: 0, pc: 0, v: 0 });
-  el.innerHTML = `
-    <div class="card">
-      <h3>Resumen general</h3>
-      <div class="stats">
-        <div class="stat n"><b>${DB.rifas.length}</b><span>Rifas</span></div>
-        <div class="stat g"><b>${money(g.rec)}</b><span>Recaudado</span></div>
-        <div class="stat o"><b>${money(g.pc)}</b><span>Por cobrar</span></div>
-      </div>
+const IC = (id, cls = '') => `<svg class="ic ${cls}" aria-hidden="true"><use href="#i-${id}"/></svg>`;
+const enHistorial = r => !!r.cerrada;
+function hoyISO(){ const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function estadoRifa(r){
+  if (r.cerrada) return r.ganador != null ? ['win', 'Finalizada'] : ['off', 'Finalizada'];
+  if (r.fecha){ const h = hoyISO(); if (r.fecha === h) return ['warn', 'Sorteo hoy']; if (r.fecha < h) return ['warn', 'Sorteo vencido']; }
+  return ['ok', 'Activa'];
+}
+function setKpis(items){
+  $('#topKpis').innerHTML = items.map(([l, v]) => `<div class="kpi"><span>${l}</span><b>${v}</b></div>`).join('');
+}
+function tarjetaRifa(r){
+  const s = stats(r), [cls, txt] = estadoRifa(r);
+  const win = r.ganador != null ? pad(r.ganador, r.cifras) : null, wv = win ? r.nums[win] : null;
+  return `<button type="button" class="rc ${r.cerrada ? 'done' : ''}" onclick="abrirRifa('${r.id}')">
+    <div class="rc-top"><span class="tagc dig">${r.cifras} cifras</span><span class="tagc ${cls}">${txt}</span><span class="rc-chev">${IC('chev')}</span></div>
+    <h3>${esc(r.nombre)}</h3>
+    <div class="prize">${IC('trophy', 'sm')}${esc(r.premio || 'Sin premio definido')}</div>
+    <div class="rc-meta">
+      <span>${IC('cal', 'sm')}${fmtFechaCorta(r.fecha)}</span>
+      <span>${IC('users', 'sm')}${s.p + s.a} participante${s.p + s.a === 1 ? '' : 's'}</span>
+      ${r.max ? `<span>${IC('ticket', 'sm')}${r.max} oport.</span>` : ''}
     </div>
-    ${DB.rifas.slice().reverse().map(r => { const s = stats(r); return `
-      <div class="card rifa-item" onclick="abrirRifa('${r.id}')">
-        <div class="rifa-badge"><div><b>${r.cifras}</b>cifras</div></div>
-        <div class="info">
-          <h3>${esc(r.nombre)}</h3>
-          <div class="muted">🏆 ${esc(r.premio || 'Sin premio')} · ${money(r.precio)}</div>
-          <div class="muted">📅 ${fmtFechaCorta(r.fecha)}${r.max ? ' · 🎟️ Máx. ' + r.max + ' por cliente' : ''}${r.ganador != null ? ' · 🎉 Ganó ' + pad(r.ganador, r.cifras) : ''}</div>
-          <div class="prog"><i style="width:${Math.max(s.pct, s.pct ? 2 : 0)}%"></i></div>
-          <div class="muted" style="font-size:11px;margin-top:4px">${s.p + s.a} de ${s.t.toLocaleString('es-CO')} números · ${s.pct.toFixed(1)}%</div>
-        </div>
-      </div>`; }).join('')}
-    <div class="foot">Rifas PrestaYa ${VERSION}</div>`;
+    <div class="rc-prog"><div class="bar"><i style="width:${Math.max(s.pct, s.pct ? 2 : 0)}%"></i></div><small>${(s.p + s.a).toLocaleString('es-CO')} / ${s.t.toLocaleString('es-CO')}</small></div>
+    ${win ? `<div class="winbox"><span class="wn">${win}</span><div><b>${wv ? esc(wv.n) : 'Número sin vender'}</b><span>Número ganador</span></div></div>` : ''}
+  </button>`;
+}
+function renderLista(){
+  $('#vLista').classList.remove('hidden'); $('#vDetalle').classList.add('hidden'); $('#btnBack').classList.add('hidden'); UI.rifaId = null;
+  UI.lista = UI.lista || 'act';
+  const act = DB.rifas.filter(r => !enHistorial(r)), his = DB.rifas.filter(enHistorial);
+  const hist = UI.lista === 'his';
+  $('#fabNew').classList.toggle('hidden', hist);
+  $('#topTitle').textContent = hist ? 'Historial de rifas' : 'Mis rifas';
+  $('#topSub').textContent = hist ? 'Rifas finalizadas y sus ganadores' : 'Crea, administra y comparte tus rifas';
+  const lista = (hist ? his : act).slice().sort((a, b) => hist ? (b.cerrada - a.cerrada) : (b.creada || 0) - (a.creada || 0));
+  const tot = lista.reduce((a, r) => { const s = stats(r); a.p += s.p + s.a; a.rec += s.rec; return a; }, { p: 0, rec: 0 });
+  setKpis(hist
+    ? [['Finalizadas', his.length], ['Con ganador', his.filter(r => r.ganador != null).length], ['Participantes', tot.p.toLocaleString('es-CO')]]
+    : [['Activas', act.length], ['Participantes', tot.p.toLocaleString('es-CO')], ['Recaudado', money(tot.rec)]]);
+  const caps = `<div class="caps" role="tablist">
+    <button type="button" role="tab" aria-selected="${!hist}" class="${!hist ? 'on' : ''}" onclick="UI.lista='act';renderLista()">Rifas activas <span class="cnt">${act.length}</span></button>
+    <button type="button" role="tab" aria-selected="${hist}" class="${hist ? 'on' : ''}" onclick="UI.lista='his';renderLista()">Historial de rifas <span class="cnt">${his.length}</span></button>
+  </div>`;
+  let body;
+  if (!lista.length){
+    body = hist
+      ? `<div class="card empty"><div class="art">${IC('archive')}</div><h2>Sin rifas en el historial</h2><p class="muted" style="margin:0 auto;max-width:300px">Cuando registres el ganador y finalices una rifa, aparecerá aquí con todos sus datos.</p></div>`
+      : `<div class="card empty"><div class="art">${IC('ticket')}</div><h2>${DB.rifas.length ? 'No tienes rifas activas' : 'Aún no tienes rifas'}</h2><p class="muted" style="margin:0 auto 18px;max-width:300px">Crea una rifa de 2, 3 o 4 cifras y compártela con tus clientes por WhatsApp.</p><button class="btn block" onclick="formRifa()">${IC('plus')} Crear rifa</button></div>`;
+  } else {
+    body = `<div class="sec-h"><h3>${hist ? 'Finalizadas' : 'En curso'}</h3><span>${lista.length} rifa${lista.length === 1 ? '' : 's'}</span></div>` + lista.map(tarjetaRifa).join('');
+  }
+  $('#vLista').innerHTML = caps + body + `<div class="foot">Rifas PrestaYa ${VERSION}</div>`;
+}
+function finalizarRifa(){
+  const r = getRifa(UI.rifaId);
+  askConfirm(`¿Finalizar <b>${esc(r.nombre)}</b> y moverla al historial?${r.ganador == null ? '<br><br>Aún no has registrado un número ganador.' : ''}`, 'Finalizar', () => {
+    r.cerrada = Date.now(); save(); UI.lista = 'his'; renderDetalle(); toast('Rifa movida al historial');
+  }, false);
+}
+function reactivarRifa(){
+  const r = getRifa(UI.rifaId); delete r.cerrada; save(); UI.lista = 'act'; renderDetalle(); toast('Rifa activa de nuevo ✅');
 }
 
 function abrirRifa(id){ UI.rifaId = id; UI.tab = 'nums'; UI.filtro = 'todos'; UI.page = 0; UI.q = ''; renderDetalle(); window.scrollTo(0, 0); }
@@ -332,40 +484,39 @@ function abrirRifa(id){ UI.rifaId = id; UI.tab = 'nums'; UI.filtro = 'todos'; UI
 function renderDetalle(){
   const r = getRifa(UI.rifaId); if (!r) return renderLista();
   $('#vLista').classList.add('hidden'); $('#vDetalle').classList.remove('hidden'); $('#fabNew').classList.add('hidden'); $('#btnBack').classList.remove('hidden');
-  $('#topSub').textContent = r.nombre;
-  const s = stats(r);
+  $('#topTitle').textContent = r.cerrada ? 'Rifa finalizada' : 'Detalle de la rifa';
+  $('#topSub').textContent = r.cerrada ? 'Consulta los participantes y el ganador' : 'Comparte, registra y controla tus números';
+  const s = stats(r), [cls, txt] = estadoRifa(r);
+  setKpis([['Pagados', s.p], ['Apartados', s.a], ['Disponibles', s.d.toLocaleString('es-CO')]]);
+  const win = r.ganador != null ? pad(r.ganador, r.cifras) : null, wv = win ? r.nums[win] : null;
   $('#vDetalle').innerHTML = `
-    <div class="row" style="margin-bottom:12px">
-      <button class="btn ghost sm" style="flex:0 0 auto" onclick="renderLista();window.scrollTo(0,0)">← Mis rifas</button>
-      <span></span>
-      <button class="btn ghost sm" style="flex:0 0 auto" onclick="formRifa('${r.id}')">✏️ Editar</button>
-    </div>
-    <div class="card">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px">
-        <div><h2>${esc(r.nombre)}</h2><div class="muted">🏆 ${esc(r.premio || 'Sin premio')}</div>
-        <div class="muted">🎲 ${esc(r.loteria || 'Lotería por definir')} · 📅 ${fmtFechaCorta(r.fecha)}</div>
-        <div class="muted">🎟️ ${r.max ? 'Máximo ' + r.max + ' número' + (r.max > 1 ? 's' : '') + ' por cliente' : 'Sin límite de números por cliente'}</div></div>
-        <span class="pill p" style="white-space:nowrap">${r.cifras} cifras</span>
+    <div class="dhead">
+      <div class="rc-top"><span class="tagc dig">${r.cifras} cifras</span><span class="tagc ${cls}">${txt}</span>
+        <button class="btn ghost sm" style="margin-left:auto" onclick="formRifa('${r.id}')">${IC('edit', 'sm')} Editar</button></div>
+      <h2>${esc(r.nombre)}</h2>
+      <div class="prize" style="display:flex;align-items:center;gap:6px;color:#11804a;font-weight:600;font-size:14px;margin-top:4px">${IC('trophy', 'sm')}${esc(r.premio || 'Sin premio definido')}</div>
+      <div class="rc-meta" style="margin:10px 0 12px">
+        <span>${IC('dice', 'sm')}${esc(r.loteria || 'Lotería por definir')}</span>
+        <span>${IC('cal', 'sm')}${fmtFechaCorta(r.fecha)}</span>
+        <span>${IC('ticket', 'sm')}${r.max ? r.max + ' oportunidad' + (r.max > 1 ? 'es' : '') : 'Sin límite'}</span>
       </div>
-      <div class="prog"><i style="width:${s.pct}%"></i></div>
-      <div class="stats">
-        <div class="stat g"><b>${s.p}</b><span>Pagados</span></div>
-        <div class="stat o"><b>${s.a}</b><span>Apartados</span></div>
-        <div class="stat n"><b>${s.d.toLocaleString('es-CO')}</b><span>Disponibles</span></div>
-        <div class="stat g"><b>${money(s.rec)}</b><span>Recaudado</span></div>
-        <div class="stat o"><b>${money(s.porCobrar)}</b><span>Por cobrar</span></div>
-        <div class="stat n"><b>${money(r.precio)}</b><span>Valor boleta</span></div>
+      <div class="rc-prog"><div class="bar"><i style="width:${Math.max(s.pct, s.pct ? 2 : 0)}%"></i></div><small>${s.pct.toFixed(1)}%</small></div>
+      <div class="dgrid">
+        <div class="g"><span>Recaudado</span><b>${money(s.rec)}</b></div>
+        <div class="o"><span>Por cobrar</span><b>${money(s.porCobrar)}</b></div>
+        <div><span>Valor</span><b>${r.precio ? money(r.precio) : 'Gratis'}</b></div>
       </div>
-      ${r.ganador != null ? `<div class="note" style="background:#e2f7ec;border-color:var(--green);color:#0d6b3b">🎉 Número ganador: <b>${pad(r.ganador, r.cifras)}</b> ${r.nums[pad(r.ganador, r.cifras)] ? '· ' + esc(r.nums[pad(r.ganador, r.cifras)].n) : '· (sin vender)'}</div>` : ''}
+      ${win ? `<div class="winbox"><span class="wn">${win}</span><div><b>${wv ? esc(wv.n) : 'Número sin vender'}</b><span>Número ganador</span></div></div>` : ''}
     </div>
-    <div class="row" style="margin-bottom:12px">
-      <button class="btn" onclick="modalCompartir()">🔗 Compartir</button>
-      <button class="btn navy" onclick="modalPegar()">📥 Registrar</button>
-    </div>
-    <div class="tabs">
-      <button class="${UI.tab === 'nums' ? 'on' : ''}" onclick="UI.tab='nums';renderDetalle()">Números</button>
-      <button class="${UI.tab === 'part' ? 'on' : ''}" onclick="UI.tab='part';renderDetalle()">Participantes</button>
-      <button class="${UI.tab === 'sorteo' ? 'on' : ''}" onclick="UI.tab='sorteo';renderDetalle()">Sorteo</button>
+    ${r.cerrada ? `<div class="banner-off">${IC('archive', 'lg')}<div><b>En el historial</b>Finalizada el ${new Date(r.cerrada).toLocaleDateString('es-CO')}</div><button class="btn ghost sm" onclick="reactivarRifa()">${IC('play', 'sm')} Reactivar</button></div>`
+      : `<div class="acts">
+      <button class="btn" onclick="modalCompartir()">${IC('share')} Compartir</button>
+      <button class="btn navy" onclick="modalPegar()">${IC('inbox')} Registrar</button>
+    </div>`}
+    <div class="tabs" role="tablist">
+      <button role="tab" class="${UI.tab === 'nums' ? 'on' : ''}" onclick="UI.tab='nums';renderDetalle()">Números</button>
+      <button role="tab" class="${UI.tab === 'part' ? 'on' : ''}" onclick="UI.tab='part';renderDetalle()">Participantes</button>
+      <button role="tab" class="${UI.tab === 'sorteo' ? 'on' : ''}" onclick="UI.tab='sorteo';renderDetalle()">Sorteo</button>
     </div>
     <div id="tabBody"></div>`;
   if (UI.tab === 'nums') renderNums(r);
@@ -493,6 +644,11 @@ function renderSorteo(r){
       : `<p class="muted" style="margin-top:8px">Este número no fue vendido. La rifa queda sin ganador o puedes definir cómo continuar.</p>`}
       <button class="btn ghost block" style="margin-top:10px" onclick="quitarGanador()">Quitar ganador</button>
     </div>` : ''}
+    <div class="endbox">
+      ${r.cerrada ? `<p class="muted" style="margin-bottom:10px">Esta rifa está en el historial.</p><button class="btn ghost block" onclick="reactivarRifa()">${IC('play')} Reactivar rifa</button>`
+        : `<h3 style="margin-bottom:4px">Finalizar rifa</h3><p class="muted" style="margin-bottom:10px">Al terminar el sorteo, mueve la rifa al historial. Podrás reactivarla cuando quieras.</p>
+        <button class="btn navy block" onclick="finalizarRifa()">${IC('flag')} Finalizar y mover al historial</button>`}
+    </div>
   </div>`;
 }
 function guardarGanador(){
