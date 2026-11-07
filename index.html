@@ -367,7 +367,7 @@ button.kpi span:after{content:" ›";opacity:.8}
 /* =========================================================
    RIFAS PRESTAYA  ·  v1.0
    ========================================================= */
-const VERSION = 'v2.5';
+const VERSION = 'v2.6';
 const DEFAULT_WA = '573162685282';
 const KEY = 'rifasPY_data_v1';
 const KEY_CFG = 'rifasPY_cfg_v1';
@@ -1075,25 +1075,23 @@ async function dibujarBoleta(r, keys){
     x.arcTo(tx + tw, ty, tx + tw, ty + rad, rad); x.lineTo(tx + tw, ty + th - rad); x.arcTo(tx + tw, ty + th, tx + tw - rad, ty + th, rad);
     x.lineTo(sx + nr, ty + th); x.arc(sx, ty + th, nr, 0, Math.PI, true); x.lineTo(tx + rad, ty + th);
     x.arcTo(tx, ty + th, tx, ty + th - rad, rad); x.lineTo(tx, ty + rad); x.arcTo(tx, ty, tx + rad, ty, rad); x.closePath();
-    x.fillStyle = 'rgba(255,255,255,.38)'; x.fill();
+    x.fillStyle = '#f8f5ee'; x.fill();   // blanco hueso sutil
     x.lineWidth = 7; x.strokeStyle = INK; x.stroke();
     // línea punteada del talón
     x.setLineDash([17, 13]); x.lineWidth = 6; x.beginPath(); x.moveTo(sx, ty + nr + 14); x.lineTo(sx, ty + th - nr - 14); x.stroke(); x.setLineDash([]);
-    // logo
-    const lx = 150, ly = ty + 62;
-    x.save(); x.translate(lx, ly); x.strokeStyle = GRAY; x.lineWidth = 3.2; x.lineCap = 'round';
-    for (let a = 0; a < 8; a++){ x.rotate(Math.PI / 4); x.beginPath(); x.moveTo(0, 4); x.lineTo(0, 22); x.moveTo(0, 14); x.lineTo(6, 20); x.moveTo(0, 14); x.lineTo(-6, 20); x.stroke(); }
-    x.restore();
-    x.textAlign = 'center'; x.textBaseline = 'alphabetic';
-    x.fillStyle = GRAY; x.font = M(600, 30); sp(1); x.fillText('PRESTAYA', lx, ty + 126);
-    x.fillStyle = INK; x.font = M(700, 15); sp(4); x.fillText('RIFAS', lx + 2, ty + 148); sp(0);
+    // logo: PrestaYa como una sola palabra (Presta azul oscuro + Ya verde)
+    const lx = 160;
+    x.textBaseline = 'alphabetic'; x.font = M(800, 40); sp(-0.5);
+    const lw1 = x.measureText('Presta').width, lw2 = x.measureText('Ya').width, lsx = lx - (lw1 + lw2) / 2;
+    x.textAlign = 'left'; x.fillStyle = '#12306b'; x.fillText('Presta', lsx, ty + 90); x.fillStyle = '#2fa463'; x.fillText('Ya', lsx + lw1, ty + 90); sp(0);
+    x.textAlign = 'center'; x.fillStyle = INK; x.font = M(700, 12.5); sp(2.6); x.fillText('SOLUCIÓN FINANCIERA', lx + 1, ty + 116); sp(0);
     // círculo con el número
-    const ccx = 160, ccy = ty + 262, cr = 92;
+    const ccx = 160, ccy = ty + 255, cr = 84;
     x.save(); x.shadowColor = 'rgba(0,0,0,.18)'; x.shadowBlur = 18; x.shadowOffsetY = 6;
     x.fillStyle = '#ffffff'; x.beginPath(); x.arc(ccx, ccy, cr, 0, 7); x.fill(); x.restore();
     x.strokeStyle = '#d9d6d0'; x.lineWidth = 2; x.beginPath(); x.arc(ccx, ccy, cr - 9, 0, 7); x.stroke();
-    x.fillStyle = GRAY; x.font = M(700, 13); sp(3); x.fillText('TU NÚMERO', ccx + 1, ccy - 34); sp(0);
-    const ns = fit(k, s => M(800, s), r.cifras <= 3 ? 70 : 58, cr * 1.55, 30);
+    x.fillStyle = GRAY; x.font = M(700, 13); sp(3); x.fillText('TU NÚMERO', ccx + 1, ccy - 31); sp(0);
+    const ns = fit(k, s => M(800, s), r.cifras <= 3 ? 64 : 53, cr * 1.55, 28);
     x.fillStyle = INK; x.font = M(800, ns); x.fillText(k, ccx, ccy + ns * 0.36 + 6);
     // título: primera palabra en negrilla + resto en letra script
     const right = 772, leftT = 290, maxT = right - leftT;
@@ -1134,7 +1132,7 @@ async function dibujarBoleta(r, keys){
   });
   // pie
   const fy = TOP + n * TH;
-  x.textAlign = 'center'; x.fillStyle = GRAY; x.font = S(58); x.fillText('¡Buena suerte!', W / 2, fy + 52);
+  x.textAlign = 'center'; x.fillStyle = '#1d1d1f'; x.font = S(62); x.fillText('¡Buena suerte!', W / 2, fy + 54);
   const v0 = r.nums[ks[0]];
   x.fillStyle = GRAY2; x.font = M(600, 15); sp(2);
   x.fillText(`CÓDIGO ${v0.cod || '—'}  ·  ${n} BOLETA${n > 1 ? 'S' : ''}  ·  EMITIDA ${new Date(v0.fp || v0.f || Date.now()).toLocaleDateString('es-CO')}`, W / 2, fy + 82); sp(0);
