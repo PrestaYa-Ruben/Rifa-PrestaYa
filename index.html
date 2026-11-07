@@ -379,7 +379,7 @@ html.lock,html.lock body{overflow:hidden;overscroll-behavior:none}
 /* =========================================================
    RIFAS PRESTAYA  ·  v1.0
    ========================================================= */
-const VERSION = 'v3.0';
+const VERSION = 'v3.2';
 const DEFAULT_WA = '573162685282';
 const KEY = 'rifasPY_data_v1';
 const KEY_CFG = 'rifasPY_cfg_v1';
@@ -662,19 +662,21 @@ setInterval(() => {
 }, 10000);
 
 function renderPart(r){
-  // agrupar por teléfono
-  const groups = {};
-  Object.entries(r.nums).forEach(([k, v]) => { const g = waNum(v.t) || v.n; (groups[g] = groups[g] || { n: v.n, t: v.t, nums: [] }).nums.push({ k, e: v.e, f: v.f }); });
-  const arr = Object.values(groups).sort((a, b) => a.n.localeCompare(b.n));
-  $('#tabBody').innerHTML = `<div class="card">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px"><h3>${arr.length} participante${arr.length === 1 ? '' : 's'}</h3>
-    ${arr.length ? `<button class="btn ghost sm" onclick="exportCSV()">⬇️ CSV</button>` : ''}</div>
-    ${arr.length ? `<div class="plist">${arr.map(g => g.nums.sort((a, b) => a.k.localeCompare(b.k)).map(x => `
+  const personas = new Set(Object.values(r.nums).map(v => waNum(v.t) || v.n)).size;
+  const filas = Object.entries(r.nums).map(([k, v]) => ({ k, ...v }));
+  const orden = (a, b) => a.n.localeCompare(b.n, 'es') || a.k.localeCompare(b.k);
+  const ap = filas.filter(x => x.e !== 'p').sort(orden), pg = filas.filter(x => x.e === 'p').sort(orden);
+  const fila = x => `
       <div class="it">
         <div class="n ${x.e}">${x.k}</div>
-        <div class="who"><b>${esc(g.n)}</b><span class="muted">📱 ${esc(g.t)} · <span class="pill ${x.e}">${x.e === 'p' ? 'Pagado' : 'Apartado'}</span></span></div>
-        <button class="btn sm ${x.e === 'p' ? 'gold' : 'ghost'}" onclick="modalNumero('${x.k}')">${x.e === 'p' ? '🎟️' : '✏️'}</button>
-      </div>`).join('')).join('')}</div>`
+        <div class="who"><b>${esc(x.n)}</b><span class="muted">📱 ${esc(x.t)} · <span class="pill ${x.e}">${x.e === 'p' ? 'Pagado' : 'Apartado'}</span></span></div>
+        <button class="btn sm ${x.e === 'p' ? 'gold' : 'ghost'}" onclick="modalNumero('${x.k}')" aria-label="${x.e === 'p' ? 'Boleta' : 'Editar'} ${x.k}">${x.e === 'p' ? '🎟️' : '✏️'}</button>
+      </div>`;
+  const seccion = (titulo, lista, color) => lista.length ? `<div class="sec-h" style="margin:14px 2px 4px"><h3 style="color:${color}">${titulo}</h3><span>${lista.length} número${lista.length === 1 ? '' : 's'}</span></div><div class="plist">${lista.map(fila).join('')}</div>` : '';
+  $('#tabBody').innerHTML = `<div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px"><h3>${personas} participante${personas === 1 ? '' : 's'}</h3>
+    ${filas.length ? `<button class="btn ghost sm" onclick="exportCSV()">⬇️ CSV</button>` : ''}</div>
+    ${filas.length ? seccion('Apartados', ap, '#c27400') + seccion('Pagados', pg, '#11804a')
     : `<p class="muted" style="text-align:center;padding:20px">Todavía no hay participantes. Comparte el enlace de la rifa para que tus clientes elijan su número.</p>`}
   </div>`;
 }
@@ -1056,119 +1058,117 @@ function fechaLarga(f){
   const m = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'][d.getMonth()];
   return `${String(d.getDate()).padStart(2, '0')} DE ${m}`;
 }
+/* ===== Boleta de rifa v3.2: vertical, una sola imagen con todos los números del turno ===== */
 async function dibujarBoleta(r, keys){
-  const ks = [].concat(keys).sort(); const n = ks.length;
-  try{ await Promise.all(['500 30px Montserrat', '600 30px Montserrat', '700 30px Montserrat', '800 30px Montserrat', '80px Allura', '700 30px Poppins', '800 30px Poppins'].map(f => document.fonts.load(f))); }catch(e){}
-  const M = (w, s) => `${w} ${s}px Montserrat, Poppins, "Helvetica Neue", Arial, sans-serif`;
-  const S = s => `${s}px Allura, "Segoe Script", "Brush Script MT", cursive`;
-  const PAPER = '#ecebe8', INK = '#1d1d1f', GRAY = '#8f8b83', GRAY2 = '#5d5a55';
-  const W = 1120, TH = 404, TOP = 22, FOOT = 96;
-  const H = TOP + n * TH + FOOT;
-  const c = document.createElement('canvas'); c.width = W; c.height = H; const x = c.getContext('2d');
-  const sp = px => { try{ x.letterSpacing = px + 'px'; }catch(e){} };
-  const fit = (txt, font, size, maxW, min = 14) => { let s = size; x.font = font(s); while (x.measureText(txt).width > maxW && s > min){ s -= 1; x.font = font(s); } return s; };
-  // papel con textura
-  x.fillStyle = PAPER; x.fillRect(0, 0, W, H);
-  const rnd = rngSemilla(r.id + ks.join(''));
-  for (let i = 0; i < 1400; i++){
-    const px = rnd() * W, py = rnd() * H, rr = rnd() * 2.2 + .4;
-    x.fillStyle = rnd() > .5 ? 'rgba(255,255,255,.55)' : 'rgba(120,115,105,.10)';
-    x.beginPath(); x.arc(px, py, rr, 0, 7); x.fill();
-  }
-  const dotted = y => { x.fillStyle = '#3a3a3a'; for (let i = 6; i < W; i += 7) x.fillRect(i, y, 3, 3); };
-  dotted(6);
-  ks.forEach((k, idx) => {
-    const v = r.nums[k], oy = TOP + idx * TH;
-    const tx = 40, ty = oy + 18, tw = 1040, th = 362, rad = 26, sx = 806, nr = 25;
-    // contorno del ticket con muescas
-    x.beginPath();
-    x.moveTo(tx + rad, ty); x.lineTo(sx - nr, ty); x.arc(sx, ty, nr, Math.PI, 0, true); x.lineTo(tx + tw - rad, ty);
-    x.arcTo(tx + tw, ty, tx + tw, ty + rad, rad); x.lineTo(tx + tw, ty + th - rad); x.arcTo(tx + tw, ty + th, tx + tw - rad, ty + th, rad);
-    x.lineTo(sx + nr, ty + th); x.arc(sx, ty + th, nr, 0, Math.PI, true); x.lineTo(tx + rad, ty + th);
-    x.arcTo(tx, ty + th, tx, ty + th - rad, rad); x.lineTo(tx, ty + rad); x.arcTo(tx, ty, tx + rad, ty, rad); x.closePath();
-    x.fillStyle = '#f8f5ee'; x.fill();   // blanco hueso sutil
-    x.lineWidth = 7; x.strokeStyle = INK; x.stroke();
-    // línea punteada del talón
-    x.setLineDash([17, 13]); x.lineWidth = 6; x.beginPath(); x.moveTo(sx, ty + nr + 14); x.lineTo(sx, ty + th - nr - 14); x.stroke(); x.setLineDash([]);
-    // logo: PrestaYa como una sola palabra (Presta azul oscuro + Ya verde)
-    const lx = 160;
-    x.textBaseline = 'alphabetic'; x.font = M(800, 40); sp(-0.5);
-    const lw1 = x.measureText('Presta').width, lw2 = x.measureText('Ya').width, lsx = lx - (lw1 + lw2) / 2;
-    x.textAlign = 'left'; x.fillStyle = '#12306b'; x.fillText('Presta', lsx, ty + 90); x.fillStyle = '#2fa463'; x.fillText('Ya', lsx + lw1, ty + 90); sp(0);
-    x.textAlign = 'center'; x.fillStyle = INK; x.font = M(700, 12.5); sp(2.6); x.fillText('SOLUCIÓN FINANCIERA', lx + 1, ty + 116); sp(0);
-    // círculo con el número
-    const ccx = 160, ccy = ty + 255, cr = 84;
-    x.save(); x.shadowColor = 'rgba(0,0,0,.18)'; x.shadowBlur = 18; x.shadowOffsetY = 6;
-    x.fillStyle = '#ffffff'; x.beginPath(); x.arc(ccx, ccy, cr, 0, 7); x.fill(); x.restore();
-    x.strokeStyle = '#d9d6d0'; x.lineWidth = 2; x.beginPath(); x.arc(ccx, ccy, cr - 9, 0, 7); x.stroke();
-    x.fillStyle = GRAY; x.font = M(700, 13); sp(3); x.fillText('TU NÚMERO', ccx + 1, ccy - 31); sp(0);
-    const ns = fit(k, s => M(800, s), r.cifras <= 3 ? 64 : 53, cr * 1.55, 28);
-    x.fillStyle = INK; x.font = M(800, ns); x.fillText(k, ccx, ccy + ns * 0.36 + 6);
-    // título: primera palabra en negrilla + resto en letra script
-    const right = 772, leftT = 290, maxT = right - leftT;
-    const words = String(r.nombre || 'Rifa').trim().split(/\s+/);
-    const w1 = words[0].toUpperCase(), rest = words.slice(1).join(' ');
-    let bs = 66, ss = 118;
-    const measure = () => { x.font = M(800, bs); const a = x.measureText(w1).width; x.font = S(ss); const b = rest ? x.measureText(rest).width : 0; return a + (rest ? 4 + b : 0); };
-    while (measure() > maxT && ss > bs * 1.3) ss -= 2;          // primero achica la letra script
-    while (measure() > maxT && bs > 42){ bs -= 2; ss = Math.min(ss, Math.round(bs * 1.3)); }
-    while (measure() > maxT && ss > 30) ss -= 2;                  // nombres muy largos
-    const tot = measure(), tX = right - tot, tY = ty + 112;
-    x.textAlign = 'left'; x.fillStyle = INK; x.font = M(800, bs); sp(-1); x.fillText(w1, tX, tY); sp(0);
-    if (rest){ const aw = (x.font = M(800, bs), x.measureText(w1).width); x.fillStyle = GRAY; x.font = S(ss); x.fillText(rest, tX + aw + 4, tY + ss * 0.08); }
-    // PREMIO (protagonista, en el centro)
-    x.textAlign = 'right';
-    x.fillStyle = GRAY2; x.font = M(700, 15); sp(3.5); x.fillText('PREMIO', right + 3, ty + 160); sp(0);
-    const prem = String(r.premio || 'Por definir').toUpperCase();
-    x.fillStyle = INK;
-    let ps = 46; x.font = M(800, ps);
-    while (x.measureText(prem).width > maxT && ps > 34){ ps -= 1; x.font = M(800, ps); }
-    if (x.measureText(prem).width <= maxT){ x.fillText(prem, right, ty + 222); }
-    else {
-      // dos líneas
-      const pw = prem.split(' '); let lines;
-      const split = sz => { x.font = M(800, sz); const out = []; let cur = '';
-        pw.forEach(w => { const t = cur ? cur + ' ' + w : w; if (x.measureText(t).width > maxT && cur){ out.push(cur); cur = w; } else cur = t; });
-        if (cur) out.push(cur); return out; };
-      ps = 40; lines = split(ps);
-      while ((lines.length > 2 || lines.some(l => x.measureText(l).width > maxT)) && ps > 22){ ps -= 1; lines = split(ps); }
-      lines = lines.slice(0, 2);
-      x.fillText(lines[0], right, ty + 206); if (lines[1]) x.fillText(lines[1], right, ty + 206 + ps * 1.12);
-    }
-    x.fillStyle = GRAY; x.fillRect(right - 104, ty + 268, 104, 5);
-    // fecha y lotería (abajo) con cápsula clara "SORTEO EL"
-    const fl = (fechaLarga(r.fecha) + '  ·  ' + (r.loteria ? 'JUEGA CON ' + r.loteria : 'LOTERÍA POR DEFINIR')).toUpperCase();
-    x.font = M(700, 12.5); sp(2); const cwid = x.measureText('SORTEO EL').width + 24; sp(0);
-    const fs2 = fit(fl, s => M(700, s), 19, maxT + 40 - cwid - 10, 12);
-    const flw = x.measureText(fl).width;
-    x.fillStyle = INK; x.fillText(fl, right, ty + 306);
-    const px0 = right - flw - 10 - cwid;
-    x.fillStyle = '#e4ecf8'; roundRect(x, px0, ty + 306 - fs2 * 0.72 - 7, cwid, fs2 * 0.72 + 14, (fs2 * 0.72 + 14) / 2); x.fill();
-    x.fillStyle = '#12306b'; x.font = M(700, 12.5); sp(2); x.textAlign = 'center'; x.fillText('SORTEO EL', px0 + cwid / 2 + 1, ty + 306 - fs2 * 0.36 + 4.5); sp(0); x.textAlign = 'right';
-    const est = v.e === 'p' ? 'PAGADO' : 'APARTADO';
-    const cl = `${String(v.n).toUpperCase()} · ${v.t} · ${est}`;
-    x.fillStyle = GRAY2; fit(cl, s => M(600, s), 16, right - 290 + 40, 11); x.fillText(cl, right, ty + 334);
-    // talón: texto vertical
-    x.save(); x.translate(880, ty + th / 2); x.rotate(-Math.PI / 2); x.textAlign = 'center';
-    x.font = M(800, 40); sp(1);
-    const a1 = 'BOLETA ', a2 = '#' + k, wa = x.measureText(a1).width, wb = x.measureText(a2).width, st = -(wa + wb) / 2;
-    x.textAlign = 'left'; x.fillStyle = INK; x.fillText(a1, st, 14); x.fillStyle = GRAY; x.fillText(a2, st + wa, 14); sp(0); x.restore();
-    // código de barras
-    const br = rngSemilla((v.cod || '') + k); let bx = 936; const bx2 = 1036, by1 = ty + 40, by2 = ty + th - 40;
-    x.fillStyle = INK;
-    // barras horizontales (código de barras girado, como en la referencia)
-    let yb = by1;
-    while (yb < by2){ const bh = 2 + Math.floor(br() * 8); if (yb + bh > by2) break; x.fillRect(bx, yb, bx2 - bx, bh); yb += bh + 3 + Math.floor(br() * 5); }
-    dotted(oy + TH - 2);
-  });
-  // pie
-  const fy = TOP + n * TH;
-  x.textAlign = 'center'; x.fillStyle = '#1d1d1f'; x.font = S(62); x.fillText('¡Buena suerte!', W / 2, fy + 54);
+  let ks = keys;
+  await Promise.all(['500 30px Montserrat','600 30px Montserrat','700 30px Montserrat','800 30px Montserrat','80px Allura'].map(f=>document.fonts.load(f)));
+  ks=[].concat(ks).sort(); const n=ks.length;
   const v0 = r.nums[ks[0]];
-  x.fillStyle = GRAY2; x.font = M(600, 15); sp(2);
-  x.fillText(`CÓDIGO ${v0.cod || '—'}  ·  ${n} BOLETA${n > 1 ? 'S' : ''}  ·  EMITIDA ${new Date(v0.fp || v0.f || Date.now()).toLocaleDateString('es-CO')}`, W / 2, fy + 82); sp(0);
+  const pagN = ks.filter(k => r.nums[k].e === 'p').length;
+  const v = { n: v0.n, t: v0.t, e: pagN === n ? 'p' : pagN === 0 ? 'r' : 'x' };
+  const SC = 2; // resolución doble para que el texto se vea nítido
+  const M=(w,s)=>`${w} ${s}px Montserrat, Arial, sans-serif`, S=s=>`${s}px Allura, cursive`;
+  const NAVY='#0f2a63', NAVY2='#163a85', BONE='#fbf8f1', INK='#1d1d1f', GRAY='#6f6b64', GOLD='#f5c542', GOLD2='#e0a91f', GREEN='#2fa463';
+  const sp=px=>{try{x.letterSpacing=px+'px'}catch(e){}};
+  // medidas de las placas de números
+  const per = n===1?1 : n===2?2 : n===4?2 : 3, rows=Math.ceil(n/per);
+  const plateH = n===1?230:(n<=3?180:150), pgap=22;
+  const platesH = rows*plateH+(rows-1)*pgap;
+  const extra = Math.max(0, platesH-230);
+  const W=1080, H=1290+extra;
+  const c=document.createElement('canvas'); c.width=W*SC; c.height=H*SC; const x=c.getContext('2d'); x.scale(SC,SC); x.imageSmoothingQuality='high';
+  const fit=(t,f,s,mw,min=16)=>{let z=s;x.font=f(z);while(x.measureText(t).width>mw&&z>min){z--;x.font=f(z)}return z};
+  // fondo azul festivo con confeti
+  const bg=x.createLinearGradient(0,0,W,H); bg.addColorStop(0,NAVY2); bg.addColorStop(1,'#0a1f4a'); x.fillStyle=bg; x.fillRect(0,0,W,H);
+  const rnd=rngSemilla(r.id+ks.join('')); const conf=['#f5c542','#2fa463','#ffffff','#7fb2ff'];
+  for(let i=0;i<140;i++){const qx=rnd()*W,qy=rnd()*H; if(qy<120&&Math.abs(qx-W/2)<220){rnd();rnd();rnd();rnd();continue;} x.save();x.translate(qx,qy);x.rotate(rnd()*6);x.globalAlpha=.18+rnd()*.25;x.fillStyle=conf[Math.floor(rnd()*4)];
+    if(rnd()>.5)x.fillRect(-6,-2.5,12,5);else{x.beginPath();x.arc(0,0,3+rnd()*3,0,7);x.fill();}x.restore();}
+  // logo arriba
+  x.textAlign='left'; x.textBaseline='alphabetic'; x.font=M(800,46);
+  const la=x.measureText('Presta').width, lb=x.measureText('Ya').width, lx=W/2-(la+lb)/2;
+  x.fillStyle='#ffffff'; x.fillText('Presta',lx,78); x.fillStyle='#4fd18b'; x.fillText('Ya',lx+la,78);
+  x.textAlign='center'; x.fillStyle='rgba(255,255,255,.75)'; x.font=M(700,15); sp(5); x.fillText('SOLUCIÓN FINANCIERA',W/2+2,104); sp(0);
+  // ticket
+  const tx=70,ty=126,tw=940,tb=H-84,th=tb-ty, sy=tb-200;
+  x.save(); x.shadowColor='rgba(0,0,0,.35)'; x.shadowBlur=40; x.shadowOffsetY=16; x.fillStyle=BONE; roundRect(x,tx,ty,tw,th,26); x.fill(); x.restore();
+  // bordes festoneados (mordidas) a los lados
+  x.fillStyle='#0d2457';
+  for(let yy=ty+40; yy<tb-20; yy+=44){ if(Math.abs(yy-sy)<40) continue; x.beginPath(); x.arc(tx,yy,12,0,7); x.fill(); x.beginPath(); x.arc(tx+tw,yy,12,0,7); x.fill(); }
+  x.beginPath(); x.arc(tx,sy,30,0,7); x.fill(); x.beginPath(); x.arc(tx+tw,sy,30,0,7); x.fill();
+  // marco interior
+  x.strokeStyle='#d8cfb8'; x.lineWidth=2; roundRect(x,tx+34,ty+26,tw-68,sy-ty-52,16); x.stroke();
+  const cx=W/2, inner=tw-140;
+  // encabezado
+  x.textAlign='center'; x.fillStyle=GREEN; x.font=M(800,24); sp(8); x.fillText('★  GRAN RIFA  ★',cx+4,ty+82); sp(0);
+  // nombre de la rifa
+  const words=r.nombre.trim().split(/\s+/), w1=words[0].toUpperCase(), rest=words.slice(1).join(' ');
+  let bs=80, ss=130;
+  const meas=()=>{x.font=M(800,bs);const p=x.measureText(w1).width;x.font=S(ss);return p+(rest?10+x.measureText(rest).width:0)};
+  while(meas()>inner&&ss>bs*1.3)ss-=2; while(meas()>inner&&bs>48){bs-=2;ss=Math.min(ss,Math.round(bs*1.3))} while(meas()>inner&&ss>40)ss-=2;
+  const tt=meas(), t0=cx-tt/2, tY=ty+178; x.textAlign='left';
+  x.fillStyle=NAVY; x.font=M(800,bs); x.fillText(w1,t0,tY); const aw=x.measureText(w1).width;
+  if(rest){x.fillStyle='#5b574f'; x.font=S(ss); x.fillText(rest,t0+aw+10,tY+ss*.06);}
+  x.textAlign='center';
+  // números de la suerte
+  let y=tY+72;
+  x.fillStyle=GRAY; x.font=M(700,22); sp(5); x.fillText(n>1?'TUS NÚMEROS DE LA SUERTE':'TU NÚMERO DE LA SUERTE',cx+3,y); sp(0);
+  y+=26;
+  const areaW = n===1?520:inner;
+  for(let i=0;i<n;i++){
+    const row=Math.floor(i/per), col=i%per, inRow=Math.min(per,n-row*per);
+    const pw = n===1?520:(areaW-(per-1)*pgap)/per;
+    const rowW=inRow*pw+(inRow-1)*pgap, px=cx-rowW/2+col*(pw+pgap), py=y+row*(plateH+pgap);
+    x.save(); x.shadowColor='rgba(150,100,0,.35)'; x.shadowBlur=18; x.shadowOffsetY=8;
+    const g=x.createLinearGradient(0,py,0,py+plateH); g.addColorStop(0,'#ffd968'); g.addColorStop(1,GOLD2); x.fillStyle=g; roundRect(x,px,py,pw,plateH,24); x.fill(); x.restore();
+    x.strokeStyle='rgba(15,42,99,.35)'; x.lineWidth=3; x.setLineDash([10,8]); roundRect(x,px+12,py+12,pw-24,plateH-24,16); x.stroke(); x.setLineDash([]);
+    const z=fit(ks[i],s=>M(800,s),n===1?(r.cifras<4?170:140):Math.round(plateH*.62),pw-50,40);
+    x.fillStyle=NAVY; sp(n===1?6:2); x.fillText(ks[i],px+pw/2,py+plateH/2+z*.36); sp(0);
+  }
+  y+=platesH+32;
+  // panel de premio
+  const prem=String(r.premio||'Por definir').toUpperCase();
+  const panW=inner, panX=cx-panW/2;
+  x.font=M(800,54); let lines=[prem], ps=54;
+  if(x.measureText(prem).width>panW-200){ const pw=prem.split(' '); const split=z=>{x.font=M(800,z);const o=[];let cu='';pw.forEach(w=>{const t=cu?cu+' '+w:w;if(x.measureText(t).width>panW-200&&cu){o.push(cu);cu=w}else cu=t});if(cu)o.push(cu);return o};
+    ps=50; lines=split(ps); while(lines.length>2&&ps>30){ps--;lines=split(ps)} lines=lines.slice(0,2); }
+  const panH = 92 + lines.length*ps*1.1;
+  x.fillStyle=NAVY; roundRect(x,panX,y,panW,panH,22); x.fill();
+  // trofeo
+  const trx=panX+86, try_=y+panH/2;
+  x.fillStyle=GOLD; x.beginPath(); x.moveTo(trx-34,try_-40); x.lineTo(trx+34,try_-40); x.lineTo(trx+30,try_-6); x.quadraticCurveTo(trx,try_+22,trx-30,try_-6); x.closePath(); x.fill();
+  x.lineWidth=7; x.strokeStyle=GOLD; x.beginPath(); x.arc(trx-34,try_-24,14,Math.PI*.5,Math.PI*1.5); x.stroke(); x.beginPath(); x.arc(trx+34,try_-24,14,-Math.PI*.5,Math.PI*.5); x.stroke();
+  x.fillRect(trx-6,try_+8,12,20); x.fillRect(trx-24,try_+28,48,10);
+  x.textAlign='left'; x.fillStyle=GOLD; x.font=M(800,22); sp(5); x.fillText('PREMIO',panX+160,y+52); sp(0);
+  x.fillStyle='#ffffff'; x.font=M(800,ps); lines.forEach((l,i)=>x.fillText(l,panX+160,y+52+ps*1.1*(i+1)));
+  y+=panH+26;
+  // fila de datos
+  x.textAlign='center';
+  const fecha = r.fecha?(()=>{const d=new Date(r.fecha+'T12:00:00');return String(d.getDate()).padStart(2,'0')+' '+['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'][d.getMonth()]+' '+d.getFullYear()})():'POR DEFINIR';
+  const cols=[['SORTEO',fecha],['JUEGA CON',(r.loteria||'Por definir').toUpperCase()],['VALOR',r.precio?'$'+Number(r.precio).toLocaleString('es-CO'):'GRATIS']];
+  const cw=inner/3;
+  x.fillStyle='#e3dccb'; x.fillRect(panX,y,inner,2); x.fillRect(panX,y+122,inner,2);
+  cols.forEach(([l,val],i)=>{ const ccx=panX+cw*i+cw/2;
+    if(i) { x.fillStyle='#e3dccb'; x.fillRect(panX+cw*i,y+22,2,80); }
+    x.fillStyle=GRAY; x.font=M(700,20); sp(4); x.fillText(l,ccx+2,y+48); sp(0);
+    x.fillStyle=NAVY; fit(val,s=>M(800,s),36,cw-30,18); x.fillText(val,ccx,y+96); });
+  // perforación
+  x.strokeStyle='#bfb6a2'; x.lineWidth=4; x.setLineDash([2,14]); x.lineCap='round'; x.beginPath(); x.moveTo(tx+44,sy); x.lineTo(tx+tw-44,sy); x.stroke(); x.setLineDash([]); x.lineCap='butt';
+  // talón
+  const sx0=tx+70;
+  x.textAlign='left'; x.fillStyle=GRAY; x.font=M(700,20); sp(4); x.fillText('CLIENTE',sx0,sy+62); sp(0);
+  x.fillStyle=INK; fit(v.n,s=>M(800,s),40,440,20); x.fillText(v.n,sx0,sy+112);
+  x.fillStyle=GRAY; x.font=M(600,28); x.fillText(v.t,sx0,sy+156);
+  const pag=v.e==='p', chip=pag?'PAGADO':v.e==='x'?'PAGO PARCIAL':'APARTADO';
+  x.font=M(800,24); sp(3); const chw=x.measureText(chip).width+52; sp(0);
+  const chx=tx+tw-70-chw; x.fillStyle=pag?'#dcf3e5':'#fff0d4'; roundRect(x,chx,sy+40,chw,50,25); x.fill();
+  x.fillStyle=pag?'#11804a':'#a8660a'; x.textAlign='center'; x.font=M(800,24); sp(3); x.fillText(chip,chx+chw/2+1.5,sy+74); sp(0);
+  x.textAlign='right'; x.fillStyle=NAVY; const bl=n>2?n+' BOLETAS':(n>1?'BOLETAS ':'BOLETA ')+'Nº '+ks.join(' · '); fit(bl,s=>M(800,s),30,330,16); x.fillText(bl,tx+tw-70,sy+140);
+  x.fillStyle=GRAY; x.font=M(600,18); sp(2); x.fillText('CÓDIGO '+(v0.cod||'—'),tx+tw-70,sy+170); sp(0);
+  // pie
+  x.textAlign='center'; x.fillStyle=GOLD; x.font=S(66); x.fillText('¡Buena suerte!',cx,H-26);
   return c;
 }
+
 function fechaBoleta(f){
   if (!f) return 'Por definir';
   const d = new Date(f + 'T12:00:00');
