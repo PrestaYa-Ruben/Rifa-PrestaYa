@@ -283,6 +283,32 @@ h3{font-size:15px;font-weight:700;letter-spacing:-.1px}
 .banner-off b{display:block;color:var(--ink)}
 .banner-off .btn{margin-left:auto;flex-shrink:0}
 .endbox{border-top:1px solid var(--line);margin-top:16px;padding-top:16px}
+
+/* ===== v2.3 ===== */
+.rc{border:1.5px solid #d6dce8;box-shadow:0 1px 0 #fff inset,0 2px 4px rgba(15,26,58,.06),0 10px 24px rgba(15,26,58,.08)}
+.rc:before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:4px;border-radius:0 4px 4px 0;background:#1fbf6a}
+.rc.done:before{background:#e0b43a}
+.num.has-n{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:3px 4px;min-width:0;overflow:hidden}
+.num.has-n .nk{font-size:15px;line-height:1}
+.grid.c4 .num.has-n .nk{font-size:13px}
+.num .nn{font-family:'Inter',system-ui,sans-serif;font-size:9.5px;font-weight:600;line-height:1.2;letter-spacing:0;width:100%;text-align:center;display:block}
+.num .nn i{display:block;font-style:normal;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.grid.c4 .num .nn{font-size:9px}.grid.c4 .num .nn i+i{display:none}
+.num.r .nn{color:#8a4f00}.num.p .nn{color:#eafff2}
+button.kpi{font:inherit;color:inherit;text-align:left;cursor:pointer;transition:background .15s,transform .1s}
+button.kpi:active{transform:scale(.97)}
+button.kpi:hover{background:rgba(255,255,255,.14)}
+button.kpi span:after{content:" ›";opacity:.8}
+.mlist{display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow-y:auto;margin:0 -2px;padding:2px}
+.mrow{display:flex;align-items:center;gap:12px;width:100%;text-align:left;background:#fff;border:1.5px solid #e3e8f1;border-radius:16px;padding:10px 12px;font:inherit;color:inherit}
+.mrow:active{transform:scale(.99)}
+.mrow .mn{min-width:58px;height:42px;padding:0 8px;border-radius:12px;display:grid;place-items:center;font-family:'Poppins',sans-serif;font-weight:800;font-size:16px;color:#fff;background:#1fbf6a;font-variant-numeric:tabular-nums}
+.mrow .mn.r{background:#ff9f1c}
+.mrow .mw{flex:1;min-width:0}
+.mrow .mw b{display:block;font-size:14.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mrow .mw span{font-size:12.5px;color:var(--muted)}
+.mtot{display:flex;justify-content:space-between;align-items:center;background:var(--soft);border-radius:14px;padding:10px 12px;margin-bottom:12px;font-size:13px;color:var(--muted)}
+.mtot b{font-family:'Poppins',sans-serif;font-size:16px;color:var(--ink)}
 </style>
 </head>
 <body>
@@ -341,7 +367,7 @@ h3{font-size:15px;font-weight:700;letter-spacing:-.1px}
 /* =========================================================
    RIFAS PRESTAYA  ·  v1.0
    ========================================================= */
-const VERSION = 'v2.1';
+const VERSION = 'v2.3';
 const DEFAULT_WA = '573162685282';
 const KEY = 'rifasPY_data_v1';
 const KEY_CFG = 'rifasPY_cfg_v1';
@@ -416,20 +442,40 @@ function stats(r){
 }
 
 const IC = (id, cls = '') => `<svg class="ic ${cls}" aria-hidden="true"><use href="#i-${id}"/></svg>`;
-const enHistorial = r => !!r.cerrada;
+/* Pasa al historial automáticamente: tiene número ganador y la fecha del sorteo ya llegó o pasó (sin fecha: basta el ganador) */
+const enHistorial = r => r.ganador != null && (!r.fecha || r.fecha <= hoyISO());
 function hoyISO(){ const d = new Date(); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
 function estadoRifa(r){
-  if (r.cerrada) return r.ganador != null ? ['win', 'Finalizada'] : ['off', 'Finalizada'];
-  if (r.fecha){ const h = hoyISO(); if (r.fecha === h) return ['warn', 'Sorteo hoy']; if (r.fecha < h) return ['warn', 'Sorteo vencido']; }
+  if (enHistorial(r)) return ['win', 'Finalizada'];
+  if (r.fecha){ const h = hoyISO(); if (r.fecha === h) return ['warn', 'Sorteo hoy']; if (r.fecha < h) return ['warn', 'Falta ganador']; }
+  if (r.ganador != null) return ['win', 'Con ganador'];
   return ['ok', 'Activa'];
 }
 function setKpis(items){
-  $('#topKpis').innerHTML = items.map(([l, v]) => `<div class="kpi"><span>${l}</span><b>${v}</b></div>`).join('');
+  $('#topKpis').innerHTML = items.map(([l, v, fn]) => fn
+    ? `<button type="button" class="kpi" onclick="${fn}" aria-label="Ver ${l.toLowerCase()}"><span>${l}</span><b>${v}</b></button>`
+    : `<div class="kpi"><span>${l}</span><b>${v}</b></div>`).join('');
+}
+function nombreCorto(n){ return String(n || '').trim().split(/\s+/).slice(0, 2).join(' '); }
+function modalEstado(e){
+  const r = getRifa(UI.rifaId); if (!r) return;
+  const ks = Object.keys(r.nums).filter(k => r.nums[k].e === e).sort();
+  const titulo = e === 'p' ? 'Números pagados' : 'Números apartados';
+  const total = ks.length * (r.precio || 0);
+  modal(`<h2>${titulo}</h2>
+    <div class="mtot"><span>${ks.length} número${ks.length === 1 ? '' : 's'}${r.precio ? ' · ' + (e === 'p' ? 'recaudado' : 'por cobrar') : ''}</span><b>${r.precio ? money(total) : ks.length}</b></div>
+    ${ks.length ? `<div class="mlist">${ks.map(k => { const v = r.nums[k]; return `
+      <button type="button" class="mrow" onclick="modalNumero('${k}')">
+        <span class="mn ${e}">${k}</span>
+        <span class="mw"><b>${esc(v.n)}</b><span>${esc(v.t)}</span></span>
+        ${IC('chev')}
+      </button>`; }).join('')}</div>`
+    : `<p class="muted" style="text-align:center;padding:24px 0">${e === 'p' ? 'Aún no hay números pagados.' : 'No hay números apartados pendientes de pago.'}</p>`}`);
 }
 function tarjetaRifa(r){
   const s = stats(r), [cls, txt] = estadoRifa(r);
   const win = r.ganador != null ? pad(r.ganador, r.cifras) : null, wv = win ? r.nums[win] : null;
-  return `<button type="button" class="rc ${r.cerrada ? 'done' : ''}" onclick="abrirRifa('${r.id}')">
+  return `<button type="button" class="rc ${enHistorial(r) ? 'done' : ''}" onclick="abrirRifa('${r.id}')">
     <div class="rc-top"><span class="tagc dig">${r.cifras} cifras</span><span class="tagc ${cls}">${txt}</span><span class="rc-chev">${IC('chev')}</span></div>
     <h3>${esc(r.nombre)}</h3>
     <div class="prize">${IC('trophy', 'sm')}${esc(r.premio || 'Sin premio definido')}</div>
@@ -450,7 +496,7 @@ function renderLista(){
   $('#fabNew').classList.toggle('hidden', hist);
   $('#topTitle').textContent = hist ? 'Historial de rifas' : 'Mis rifas';
   $('#topSub').textContent = hist ? 'Rifas finalizadas y sus ganadores' : 'Crea, administra y comparte tus rifas';
-  const lista = (hist ? his : act).slice().sort((a, b) => hist ? (b.cerrada - a.cerrada) : (b.creada || 0) - (a.creada || 0));
+  const lista = (hist ? his : act).slice().sort((a, b) => hist ? String(b.fecha || '').localeCompare(String(a.fecha || '')) : (b.creada || 0) - (a.creada || 0));
   const tot = lista.reduce((a, r) => { const s = stats(r); a.p += s.p + s.a; a.rec += s.rec; return a; }, { p: 0, rec: 0 });
   setKpis(hist
     ? [['Finalizadas', his.length], ['Con ganador', his.filter(r => r.ganador != null).length], ['Participantes', tot.p.toLocaleString('es-CO')]]
@@ -462,32 +508,23 @@ function renderLista(){
   let body;
   if (!lista.length){
     body = hist
-      ? `<div class="card empty"><div class="art">${IC('archive')}</div><h2>Sin rifas en el historial</h2><p class="muted" style="margin:0 auto;max-width:300px">Cuando registres el ganador y finalices una rifa, aparecerá aquí con todos sus datos.</p></div>`
+      ? `<div class="card empty"><div class="art">${IC('archive')}</div><h2>Sin rifas en el historial</h2><p class="muted" style="margin:0 auto;max-width:300px">Cuando pase la fecha del sorteo y registres el número ganador, la rifa aparecerá aquí con todos sus datos.</p></div>`
       : `<div class="card empty"><div class="art">${IC('ticket')}</div><h2>${DB.rifas.length ? 'No tienes rifas activas' : 'Aún no tienes rifas'}</h2><p class="muted" style="margin:0 auto 18px;max-width:300px">Crea una rifa de 2, 3 o 4 cifras y compártela con tus clientes por WhatsApp.</p><button class="btn block" onclick="formRifa()">${IC('plus')} Crear rifa</button></div>`;
   } else {
     body = `<div class="sec-h"><h3>${hist ? 'Finalizadas' : 'En curso'}</h3><span>${lista.length} rifa${lista.length === 1 ? '' : 's'}</span></div>` + lista.map(tarjetaRifa).join('');
   }
   $('#vLista').innerHTML = caps + body + `<div class="foot">Rifas PrestaYa ${VERSION}</div>`;
 }
-function finalizarRifa(){
-  const r = getRifa(UI.rifaId);
-  askConfirm(`¿Finalizar <b>${esc(r.nombre)}</b> y moverla al historial?${r.ganador == null ? '<br><br>Aún no has registrado un número ganador.' : ''}`, 'Finalizar', () => {
-    r.cerrada = Date.now(); save(); UI.lista = 'his'; renderDetalle(); toast('Rifa movida al historial');
-  }, false);
-}
-function reactivarRifa(){
-  const r = getRifa(UI.rifaId); delete r.cerrada; save(); UI.lista = 'act'; renderDetalle(); toast('Rifa activa de nuevo ✅');
-}
-
 function abrirRifa(id){ UI.rifaId = id; UI.tab = 'nums'; UI.filtro = 'todos'; UI.page = 0; UI.q = ''; renderDetalle(); window.scrollTo(0, 0); }
 
 function renderDetalle(){
   const r = getRifa(UI.rifaId); if (!r) return renderLista();
   $('#vLista').classList.add('hidden'); $('#vDetalle').classList.remove('hidden'); $('#fabNew').classList.add('hidden'); $('#btnBack').classList.remove('hidden');
-  $('#topTitle').textContent = r.cerrada ? 'Rifa finalizada' : 'Detalle de la rifa';
-  $('#topSub').textContent = r.cerrada ? 'Consulta los participantes y el ganador' : 'Comparte, registra y controla tus números';
+  const fin = enHistorial(r);
+  $('#topTitle').textContent = fin ? 'Rifa finalizada' : 'Detalle de la rifa';
+  $('#topSub').textContent = fin ? 'Consulta los participantes y el ganador' : 'Comparte, registra y controla tus números';
   const s = stats(r), [cls, txt] = estadoRifa(r);
-  setKpis([['Pagados', s.p], ['Apartados', s.a], ['Disponibles', s.d.toLocaleString('es-CO')]]);
+  setKpis([['Pagados', s.p, "modalEstado('p')"], ['Apartados', s.a, "modalEstado('r')"], ['Disponibles', s.d.toLocaleString('es-CO')]]);
   const win = r.ganador != null ? pad(r.ganador, r.cifras) : null, wv = win ? r.nums[win] : null;
   $('#vDetalle').innerHTML = `
     <div class="dhead">
@@ -508,7 +545,7 @@ function renderDetalle(){
       </div>
       ${win ? `<div class="winbox"><span class="wn">${win}</span><div><b>${wv ? esc(wv.n) : 'Número sin vender'}</b><span>Número ganador</span></div></div>` : ''}
     </div>
-    ${r.cerrada ? `<div class="banner-off">${IC('archive', 'lg')}<div><b>En el historial</b>Finalizada el ${new Date(r.cerrada).toLocaleDateString('es-CO')}</div><button class="btn ghost sm" onclick="reactivarRifa()">${IC('play', 'sm')} Reactivar</button></div>`
+    ${fin ? `<div class="banner-off">${IC('archive', 'lg')}<div><b>En el historial</b>Sorteo del ${fmtFechaCorta(r.fecha)} con ganador registrado</div></div>`
       : `<div class="acts">
       <button class="btn" onclick="modalCompartir()">${IC('share')} Compartir</button>
       <button class="btn navy" onclick="modalPegar()">${IC('inbox')} Registrar</button>
@@ -539,7 +576,8 @@ function renderNums(r){
     const k = pad(i, r.cifras), v = r.nums[k];
     if (f === 'd' && v) continue;
     if ((f === 'r' || f === 'p') && (!v || v.e !== f)) continue;
-    html += `<button class="num ${v ? v.e : ''}${k === win ? ' win' : ''}" data-k="${k}">${k}</button>`; count++;
+    html += v ? `<button class="num has-n ${v.e}${k === win ? ' win' : ''}" data-k="${k}" aria-label="${k}, ${esc(v.n)}"><span class="nk">${k}</span><span class="nn">${nombreCorto(v.n).split(' ').map(w => `<i>${esc(w)}</i>`).join('')}</span></button>`
+      : `<button class="num${k === win ? ' win' : ''}" data-k="${k}">${k}</button>`; count++;
   }
   $('#tabBody').innerHTML = `
     <div class="card">
@@ -645,16 +683,17 @@ function renderSorteo(r){
       <button class="btn ghost block" style="margin-top:10px" onclick="quitarGanador()">Quitar ganador</button>
     </div>` : ''}
     <div class="endbox">
-      ${r.cerrada ? `<p class="muted" style="margin-bottom:10px">Esta rifa está en el historial.</p><button class="btn ghost block" onclick="reactivarRifa()">${IC('play')} Reactivar rifa</button>`
-        : `<h3 style="margin-bottom:4px">Finalizar rifa</h3><p class="muted" style="margin-bottom:10px">Al terminar el sorteo, mueve la rifa al historial. Podrás reactivarla cuando quieras.</p>
-        <button class="btn navy block" onclick="finalizarRifa()">${IC('flag')} Finalizar y mover al historial</button>`}
+      ${enHistorial(r) ? `<p class="muted">Esta rifa ya está en el <b>historial</b>. Si necesitas devolverla a activas, toca <b>Quitar ganador</b>.</p>`
+        : r.ganador != null ? `<p class="muted">La rifa pasará al <b>historial</b> automáticamente el ${fmtFechaCorta(r.fecha)}, día del sorteo.</p>`
+        : `<p class="muted">Cuando llegue la fecha del sorteo${r.fecha ? ' (' + fmtFechaCorta(r.fecha) + ')' : ''} y registres el número ganador, la rifa pasará sola al <b>historial</b>.</p>`}
     </div>
   </div>`;
 }
 function guardarGanador(){
   const r = getRifa(UI.rifaId); const v = $('#inWin').value.replace(/\D/g, '');
   if (v.length !== r.cifras) return toast(`Escribe un número de ${r.cifras} cifras`);
-  r.ganador = +v; save(); renderDetalle(); toast('Ganador registrado 🎉');
+  r.ganador = +v; delete r.cerrada; save(); renderDetalle();
+  toast(enHistorial(r) ? 'Ganador registrado 🎉 La rifa pasó al historial' : 'Ganador registrado 🎉', 3000);
 }
 function quitarGanador(){ const r = getRifa(UI.rifaId); delete r.ganador; save(); renderDetalle(); }
 function avisarGanador(){
