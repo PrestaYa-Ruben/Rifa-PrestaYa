@@ -379,7 +379,7 @@ html.lock,html.lock body{overflow:hidden;overscroll-behavior:none}
 /* =========================================================
    RIFAS PRESTAYA  ·  v1.0
    ========================================================= */
-const VERSION = 'v3.2';
+const VERSION = 'v3.3';
 const DEFAULT_WA = '573162685282';
 const KEY = 'rifasPY_data_v1';
 const KEY_CFG = 'rifasPY_cfg_v1';
@@ -1022,9 +1022,15 @@ function modalCompartir(){
     ${fbBase() ? `<div class="note" style="background:#e2f7ec;border-color:var(--green);color:#0d6b3b">🟢 <b>Conexión en vivo activa.</b> Cuando un cliente aparta un número, queda bloqueado al instante para todos y te aparece aquí solo.</div>`
   : `<div class="note">💡 Sin conexión en vivo, el enlace muestra los números ocupados <b>al momento de compartir</b>. Para que se bloqueen al instante para todos y el enlace sea aún más corto, activa la <b>Conexión en vivo</b> en ⚙️ Ajustes.</div>`}
   `);
-  const url = () => linkRifa(r, opp, tok);
-  const msg = () => `👉 Elige tu número favorito aquí:\n${url()}`;
-  const pinta = () => { $('#shLink').textContent = url(); };
+  const largo = () => linkRifa(r, opp, tok);
+  let corto = null;
+  const url = () => corto || largo();
+  const msg = () => `Elige tu número favorito aquí:\n${url()}`;
+  const pinta = () => {
+    corto = null; const L = largo();
+    $('#shLink').innerHTML = `<span style="opacity:.55">Acortando enlace…</span><br>${esc(L)}`;
+    acortarEnlace(L).then(sh => { if (largo() !== L) return; corto = sh; $('#shLink').innerHTML = sh ? `<b style="font-size:15px">${esc(sh)}</b>` : esc(L); });
+  };
   pinta();
   $('#shNew').onclick = e => { e.preventDefault(); tok = nuevoTurno(); pinta(); toast('Enlace nuevo creado 🔄'); };
   document.querySelectorAll('#shOpp button').forEach(b => b.onclick = () => {
@@ -1032,8 +1038,29 @@ function modalCompartir(){
   });
   $('#shWA').onclick = () => openURL('https://wa.me/?text=' + encodeURIComponent(msg()));
   $('#shCopy').onclick = () => copiar(url());
-  $('#shMore').onclick = () => navigator.share ? navigator.share({ text: '👉 Elige tu número favorito aquí:', url: url() }).catch(() => {}) : copiar(msg());
+  $('#shMore').onclick = () => navigator.share ? navigator.share({ text: msg() }).catch(() => {}) : copiar(msg());
   $('#shPrev').onclick = () => verComoCliente(opp, tok);
+}
+/* Acortador de enlaces (is.gd, vía JSONP: no necesita servidor propio). Si falla, se usa el enlace normal. */
+const KEY_SHORT = 'rifasPY_cortos_v1';
+function acortarEnlace(largo){
+  const cache = ls.get(KEY_SHORT, {});
+  if (cache[largo]) return Promise.resolve(cache[largo]);
+  if (!navigator.onLine || location.protocol === 'file:') return Promise.resolve(null);
+  return new Promise(res => {
+    const cb = '_isgd' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    const sc = document.createElement('script');
+    const fin = val => { clearTimeout(tm); try{ delete window[cb]; }catch(e){ window[cb] = undefined; } sc.remove(); res(val); };
+    const tm = setTimeout(() => fin(null), 7000);
+    window[cb] = d => {
+      const sh = d && d.shorturl;
+      if (sh){ const c2 = ls.get(KEY_SHORT, {}); const ks = Object.keys(c2); if (ks.length > 300) delete c2[ks[0]]; c2[largo] = sh; ls.set(KEY_SHORT, c2); }
+      fin(sh || null);
+    };
+    sc.onerror = () => fin(null);
+    sc.src = 'https://is.gd/create.php?format=json&callback=' + cb + '&url=' + encodeURIComponent(largo);
+    document.head.appendChild(sc);
+  });
 }
 function copiar(t){
   if (navigator.clipboard) navigator.clipboard.writeText(t).then(() => toast('Copiado ✅')).catch(() => fallbackCopy(t));
