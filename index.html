@@ -321,6 +321,9 @@ input[type=date]::-webkit-calendar-picker-indicator{margin:0}
 .sheet *{max-width:100%}
 .modal{overscroll-behavior:contain;touch-action:pan-y}
 html.lock,html.lock body{overflow:hidden;overscroll-behavior:none}
+.more-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:12px;padding:12px;border-radius:14px;background:#f1f4f9;color:var(--ink);font-weight:700;font-size:14px;border:1px solid #e3e8f1}
+.more-btn .ic{transform:rotate(90deg);transition:transform .2s}
+.more-btn .ic.up{transform:rotate(-90deg)}
 </style>
 </head>
 <body>
@@ -379,7 +382,7 @@ html.lock,html.lock body{overflow:hidden;overscroll-behavior:none}
 /* =========================================================
    RIFAS PRESTAYA  ·  v1.0
    ========================================================= */
-const VERSION = 'v3.4';
+const VERSION = 'v3.5';
 const DEFAULT_WA = '573162685282';
 const KEY = 'rifasPY_data_v1';
 const KEY_CFG = 'rifasPY_cfg_v1';
@@ -527,7 +530,7 @@ function renderLista(){
   }
   $('#vLista').innerHTML = caps + body + `<div class="foot">Rifas PrestaYa ${VERSION}</div>`;
 }
-function abrirRifa(id){ UI.rifaId = id; UI.tab = 'nums'; UI.filtro = 'todos'; UI.page = 0; UI.q = ''; renderDetalle(); window.scrollTo(0, 0); }
+function abrirRifa(id){ UI.partAll = false; UI.rifaId = id; UI.tab = 'nums'; UI.filtro = 'todos'; UI.page = 0; UI.q = ''; renderDetalle(); window.scrollTo(0, 0); }
 
 function renderDetalle(){
   const r = getRifa(UI.rifaId); if (!r) return renderLista();
@@ -672,11 +675,15 @@ function renderPart(r){
         <div class="who"><b>${esc(x.n)}</b><span class="muted">📱 ${esc(x.t)} · <span class="pill ${x.e}">${x.e === 'p' ? 'Pagado' : 'Apartado'}</span></span></div>
         <button class="btn sm ${x.e === 'p' ? 'gold' : 'ghost'}" onclick="modalNumero('${x.k}')" aria-label="${x.e === 'p' ? 'Boleta' : 'Editar'} ${x.k}">${x.e === 'p' ? '🎟️' : '✏️'}</button>
       </div>`;
-  const seccion = (titulo, lista, color) => lista.length ? `<div class="sec-h" style="margin:14px 2px 4px"><h3 style="color:${color}">${titulo}</h3><span>${lista.length} número${lista.length === 1 ? '' : 's'}</span></div><div class="plist">${lista.map(fila).join('')}</div>` : '';
+  const LIM = 5, todos = !!UI.partAll, total = ap.length + pg.length;
+  const apV = todos ? ap : ap.slice(0, LIM), pgV = todos ? pg : pg.slice(0, Math.max(0, LIM - apV.length));
+  const seccion = (titulo, lista, vis, color) => vis.length ? `<div class="sec-h" style="margin:14px 2px 4px"><h3 style="color:${color}">${titulo}</h3><span>${lista.length} número${lista.length === 1 ? '' : 's'}</span></div><div class="plist">${vis.map(fila).join('')}</div>` : '';
+  const toggle = total > LIM ? `<button type="button" class="more-btn" onclick="UI.partAll=!UI.partAll;renderDetalle()" aria-expanded="${todos}">
+      ${todos ? 'Ver menos' : `Ver todos (${total})`}<svg class="ic ${todos ? 'up' : ''}" aria-hidden="true"><use href="#i-chev"/></svg></button>` : '';
   $('#tabBody').innerHTML = `<div class="card">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:2px"><h3>${personas} participante${personas === 1 ? '' : 's'}</h3>
     ${filas.length ? `<button class="btn ghost sm" onclick="exportCSV()">⬇️ CSV</button>` : ''}</div>
-    ${filas.length ? seccion('Apartados', ap, '#c27400') + seccion('Pagados', pg, '#11804a')
+    ${filas.length ? seccion('Apartados', ap, apV, '#c27400') + seccion('Pagados', pg, pgV, '#11804a') + toggle
     : `<p class="muted" style="text-align:center;padding:20px">Todavía no hay participantes. Comparte el enlace de la rifa para que tus clientes elijan su número.</p>`}
   </div>`;
 }
