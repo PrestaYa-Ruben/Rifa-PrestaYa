@@ -379,7 +379,7 @@ html.lock,html.lock body{overflow:hidden;overscroll-behavior:none}
 /* =========================================================
    RIFAS PRESTAYA  ·  v1.0
    ========================================================= */
-const VERSION = 'v3.3';
+const VERSION = 'v3.4';
 const DEFAULT_WA = '573162685282';
 const KEY = 'rifasPY_data_v1';
 const KEY_CFG = 'rifasPY_cfg_v1';
@@ -1101,8 +1101,16 @@ async function dibujarBoleta(r, keys){
   const per = n===1?1 : n===2?2 : n===4?2 : 3, rows=Math.ceil(n/per);
   const plateH = n===1?230:(n<=3?180:150), pgap=22;
   const platesH = rows*plateH+(rows-1)*pgap;
-  const extra = Math.max(0, platesH-230);
-  const W=1080, H=1290+extra;
+  // premio: se mide antes de dibujar para calcular el alto real de la boleta
+  const mc=document.createElement('canvas').getContext('2d');
+  const prem=String(r.premio||'Por definir').toUpperCase(), premMax=940-140-200;
+  let ps=54; mc.font=M(800,ps); let lines=[prem];
+  const split=z=>{mc.font=M(800,z);const o=[];let cu='';prem.split(' ').forEach(w=>{const t=cu?cu+' '+w:w;if(mc.measureText(t).width>premMax&&cu){o.push(cu);cu=w}else cu=t});if(cu)o.push(cu);return o};
+  if(mc.measureText(prem).width>premMax){ ps=50; lines=split(ps);
+    while((lines.length>2||lines.some(l=>mc.measureText(l).width>premMax))&&ps>26){ps--;lines=split(ps)} lines=lines.slice(0,2); }
+  const panH = 92 + lines.length*ps*1.1;
+  // alto total = encabezado + placas + premio + datos + talón (nada se sale del marco)
+  const W=1080, H=Math.round(930 + platesH + panH);
   const c=document.createElement('canvas'); c.width=W*SC; c.height=H*SC; const x=c.getContext('2d'); x.scale(SC,SC); x.imageSmoothingQuality='high';
   const fit=(t,f,s,mw,min=16)=>{let z=s;x.font=f(z);while(x.measureText(t).width>mw&&z>min){z--;x.font=f(z)}return z};
   // fondo azul festivo con confeti
@@ -1153,12 +1161,7 @@ async function dibujarBoleta(r, keys){
   }
   y+=platesH+32;
   // panel de premio
-  const prem=String(r.premio||'Por definir').toUpperCase();
   const panW=inner, panX=cx-panW/2;
-  x.font=M(800,54); let lines=[prem], ps=54;
-  if(x.measureText(prem).width>panW-200){ const pw=prem.split(' '); const split=z=>{x.font=M(800,z);const o=[];let cu='';pw.forEach(w=>{const t=cu?cu+' '+w:w;if(x.measureText(t).width>panW-200&&cu){o.push(cu);cu=w}else cu=t});if(cu)o.push(cu);return o};
-    ps=50; lines=split(ps); while(lines.length>2&&ps>30){ps--;lines=split(ps)} lines=lines.slice(0,2); }
-  const panH = 92 + lines.length*ps*1.1;
   x.fillStyle=NAVY; roundRect(x,panX,y,panW,panH,22); x.fill();
   // trofeo
   const trx=panX+86, try_=y+panH/2;
