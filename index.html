@@ -346,7 +346,7 @@ html.lock,html.lock body{overflow:hidden;overscroll-behavior:none}
 .more-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:12px;padding:12px;border-radius:14px;background:#f1f4f9;color:var(--ink);font-weight:700;font-size:14px;border:1px solid #e3e8f1}
 .more-btn .ic{transform:rotate(90deg);transition:transform .2s}
 .more-btn .ic.up{transform:rotate(-90deg)}
-.numtip{position:fixed;z-index:300;max-width:240px;padding:9px 13px;border-radius:14px;background:#c62839;color:#fff;font-size:13px;line-height:1.3;text-align:center;box-shadow:0 10px 24px rgba(15,26,58,.28);pointer-events:none;opacity:0;transform:translateY(4px) scale(.96);transition:opacity .15s,transform .15s}
+.numtip{position:absolute;z-index:30;max-width:240px;padding:9px 13px;border-radius:14px;background:#c62839;color:#fff;font-size:13px;line-height:1.3;text-align:center;box-shadow:0 10px 24px rgba(15,26,58,.28);pointer-events:none;opacity:0;transform:translateY(4px) scale(.96);transition:opacity .15s,transform .15s}
 .numtip.show{opacity:1;transform:none}
 .numtip b{display:block;font-weight:700;white-space:nowrap}
 .numtip span{display:block;font-size:12px;opacity:.92;white-space:nowrap}
@@ -412,7 +412,7 @@ html.lock,html.lock body{overflow:hidden;overscroll-behavior:none}
 /* =========================================================
    RIFAS PRESTAYA  ·  v1.0
    ========================================================= */
-const VERSION = 'v3.7';
+const VERSION = 'v3.8';
 const DEFAULT_WA = '573162685282';
 const KEY = 'rifasPY_data_v1';
 const KEY_CFG = 'rifasPY_cfg_v1';
@@ -1462,25 +1462,29 @@ function cSolo(on){
   $('#cBox').scrollTop = 0;
 }
 function shake(b){ b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); }
-/* Globito junto al número tocado */
+/* Globito junto al número tocado: va DENTRO del panel de números (no depende del tamaño de la pantalla, funciona igual en iPhone) */
 let _tipT;
 function tipEn(b, html, tipo = 'no'){
-  let t = document.getElementById('numTip');
-  if (!t){ t = document.createElement('div'); t.id = 'numTip'; t.setAttribute('role', 'status'); document.body.appendChild(t);
-    const box = document.getElementById('cBox'); if (box) box.addEventListener('scroll', ocultarTip, { passive: true });
-    window.addEventListener('scroll', ocultarTip, { passive: true }); }
+  const box = b.closest('.gridbox') || b.parentElement;
+  let t = box.querySelector('.numtip');
+  if (!t){ t = document.createElement('div'); t.className = 'numtip'; t.setAttribute('role', 'status'); box.appendChild(t);
+    box.addEventListener('scroll', ocultarTip, { passive: true }); }
   t.className = 'numtip ' + tipo; t.innerHTML = html + '<i></i>';
-  t.style.left = '0px'; t.style.top = '0px'; t.classList.add('show');
-  const r = b.getBoundingClientRect(), tw = t.offsetWidth, th = t.offsetHeight, m = 8, vw = window.innerWidth;
-  let left = r.left + r.width / 2 - tw / 2; left = Math.max(m, Math.min(vw - tw - m, left));
-  const abajo = r.top - th - 12 < m;
-  const top = abajo ? r.bottom + 12 : r.top - th - 12;
+  t.style.left = '0px'; t.style.top = '0px';
+  // posición del número dentro del panel (incluye el desplazamiento del panel)
+  const br = b.getBoundingClientRect(), xr = box.getBoundingClientRect();
+  const bx = br.left - xr.left + box.scrollLeft, by = br.top - xr.top + box.scrollTop;
+  const tw = t.offsetWidth, th = t.offsetHeight, m = 4, bw = box.clientWidth;
+  let left = bx + br.width / 2 - tw / 2; left = Math.max(m, Math.min(bw - tw - m, left));
+  const abajo = (by - box.scrollTop) - th - 10 < 0;          // primera fila visible: va debajo
+  const top = abajo ? by + br.height + 10 : by - th - 10;
   t.classList.toggle('below', abajo);
   t.style.left = left + 'px'; t.style.top = top + 'px';
-  t.querySelector('i').style.left = Math.max(14, Math.min(tw - 14, r.left + r.width / 2 - left)) + 'px';
+  t.querySelector('i').style.left = Math.max(14, Math.min(tw - 14, bx + br.width / 2 - left)) + 'px';
+  void t.offsetWidth; t.classList.add('show');
   clearTimeout(_tipT); _tipT = setTimeout(ocultarTip, 2400);
 }
-function ocultarTip(){ const t = document.getElementById('numTip'); if (t) t.classList.remove('show'); }
+function ocultarTip(){ document.querySelectorAll('.numtip.show').forEach(t => t.classList.remove('show')); }
 function cToggle(k, b){
   if (cMine().includes(k)){ shake(b); return tipEn(b, `<b>⭐ ${k}</b> ya es tuyo`, 'mine'); }
   if (cTaken(k)){
