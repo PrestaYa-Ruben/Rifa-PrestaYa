@@ -1,6 +1,6 @@
 /* Rifas PrestaYa · service worker v3.6
    Abre al instante desde el celular (caché primero) y se actualiza en segundo plano. */
-const CACHE = 'rifas-py-v3.6';
+const CACHE = 'rifas-py-v3.7';
 const ASSETS = ['./', './index.html', './manifest.json', './icons/icon-192.png', './icons/icon-512.png',
   './fonts/allura-latin-400-normal.woff2',
   './fonts/inter-latin-400-normal.woff2',

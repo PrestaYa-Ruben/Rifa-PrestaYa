@@ -346,6 +346,14 @@ html.lock,html.lock body{overflow:hidden;overscroll-behavior:none}
 .more-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:12px;padding:12px;border-radius:14px;background:#f1f4f9;color:var(--ink);font-weight:700;font-size:14px;border:1px solid #e3e8f1}
 .more-btn .ic{transform:rotate(90deg);transition:transform .2s}
 .more-btn .ic.up{transform:rotate(-90deg)}
+.numtip{position:fixed;z-index:300;max-width:240px;padding:9px 13px;border-radius:14px;background:#c62839;color:#fff;font-size:13px;line-height:1.3;text-align:center;box-shadow:0 10px 24px rgba(15,26,58,.28);pointer-events:none;opacity:0;transform:translateY(4px) scale(.96);transition:opacity .15s,transform .15s}
+.numtip.show{opacity:1;transform:none}
+.numtip b{display:block;font-weight:700;white-space:nowrap}
+.numtip span{display:block;font-size:12px;opacity:.92;white-space:nowrap}
+.numtip.mine{background:#0f2a63}
+.numtip i{position:absolute;bottom:-6px;width:12px;height:12px;margin-left:-6px;background:inherit;transform:rotate(45deg);border-radius:2px}
+.numtip.below i{bottom:auto;top:-6px}
+@media (prefers-reduced-motion:reduce){.numtip{transition:none}}
 </style>
 </head>
 <body>
@@ -404,7 +412,7 @@ html.lock,html.lock body{overflow:hidden;overscroll-behavior:none}
 /* =========================================================
    RIFAS PRESTAYA  ·  v1.0
    ========================================================= */
-const VERSION = 'v3.6';
+const VERSION = 'v3.7';
 const DEFAULT_WA = '573162685282';
 const KEY = 'rifasPY_data_v1';
 const KEY_CFG = 'rifasPY_cfg_v1';
@@ -1454,15 +1462,34 @@ function cSolo(on){
   $('#cBox').scrollTop = 0;
 }
 function shake(b){ b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); }
+/* Globito junto al número tocado */
+let _tipT;
+function tipEn(b, html, tipo = 'no'){
+  let t = document.getElementById('numTip');
+  if (!t){ t = document.createElement('div'); t.id = 'numTip'; t.setAttribute('role', 'status'); document.body.appendChild(t);
+    const box = document.getElementById('cBox'); if (box) box.addEventListener('scroll', ocultarTip, { passive: true });
+    window.addEventListener('scroll', ocultarTip, { passive: true }); }
+  t.className = 'numtip ' + tipo; t.innerHTML = html + '<i></i>';
+  t.style.left = '0px'; t.style.top = '0px'; t.classList.add('show');
+  const r = b.getBoundingClientRect(), tw = t.offsetWidth, th = t.offsetHeight, m = 8, vw = window.innerWidth;
+  let left = r.left + r.width / 2 - tw / 2; left = Math.max(m, Math.min(vw - tw - m, left));
+  const abajo = r.top - th - 12 < m;
+  const top = abajo ? r.bottom + 12 : r.top - th - 12;
+  t.classList.toggle('below', abajo);
+  t.style.left = left + 'px'; t.style.top = top + 'px';
+  t.querySelector('i').style.left = Math.max(14, Math.min(tw - 14, r.left + r.width / 2 - left)) + 'px';
+  clearTimeout(_tipT); _tipT = setTimeout(ocultarTip, 2400);
+}
+function ocultarTip(){ const t = document.getElementById('numTip'); if (t) t.classList.remove('show'); }
 function cToggle(k, b){
-  if (cMine().includes(k)){ shake(b); return toast(`⭐ El número ${k} ya es tuyo`); }
+  if (cMine().includes(k)){ shake(b); return tipEn(b, `<b>⭐ ${k}</b> ya es tuyo`, 'mine'); }
   if (cTaken(k)){
     shake(b); if (navigator.vibrate) navigator.vibrate([30, 40, 30]);
-    return toast(`⛔ El número ${k} ya fue elegido. No disponible, elige otro.`, 2800);
+    return tipEn(b, `<b>⛔ ${k} ya fue elegido</b><span>No disponible, elige otro</span>`);
   }
   if (CSEL.has(k)) CSEL.delete(k);
   else {
-    if (cUsados() >= cMax()){ shake(b); return toast(C.m ? `🎟️ Ya usaste ${C.m === 1 ? 'tu oportunidad' : 'tus ' + C.m + ' oportunidades'}. No puedes elegir más números.` : `Máximo ${MAX_SEL} números por reserva`, 3000); }
+    if (cUsados() >= cMax()){ shake(b); return tipEn(b, C.m ? `<b>🎟️ Sin oportunidades</b><span>Ya elegiste ${C.m === 1 ? 'tu número' : 'tus ' + C.m + ' números'}</span>` : `<b>Máximo ${MAX_SEL} números</b>`, 'mine'); }
     CSEL.add(k); if (navigator.vibrate) navigator.vibrate(15);
     if (C.m && cUsados() >= cMax()) toast(`✅ Completaste ${C.m === 1 ? 'tu oportunidad' : 'tus ' + C.m + ' oportunidades'}. Toca Continuar.`);
   }
