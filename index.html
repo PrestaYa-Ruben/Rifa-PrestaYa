@@ -346,14 +346,28 @@ html.lock,html.lock body{overflow:hidden;overscroll-behavior:none}
 .more-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin-top:12px;padding:12px;border-radius:14px;background:#f1f4f9;color:var(--ink);font-weight:700;font-size:14px;border:1px solid #e3e8f1}
 .more-btn .ic{transform:rotate(90deg);transition:transform .2s}
 .more-btn .ic.up{transform:rotate(-90deg)}
-.numtip{position:absolute;z-index:30;max-width:240px;padding:9px 13px;border-radius:14px;background:#c62839;color:#fff;font-size:13px;line-height:1.3;text-align:center;box-shadow:0 10px 24px rgba(15,26,58,.28);pointer-events:none;opacity:0;transform:translateY(4px) scale(.96);transition:opacity .15s,transform .15s}
-.numtip.show{opacity:1;transform:none}
-.numtip b{display:block;font-weight:700;white-space:nowrap}
-.numtip span{display:block;font-size:12px;opacity:.92;white-space:nowrap}
+.num.tipped{z-index:20;overflow:visible!important}
+.numtip{position:absolute;z-index:25;bottom:calc(100% + 11px);left:50%;transform:translateX(-50%);padding:9px 13px;border-radius:14px;background:#c62839;color:#fff!important;font-family:'Inter',system-ui,sans-serif;font-size:13px;font-weight:500;letter-spacing:0;line-height:1.3;text-align:center;text-decoration:none;white-space:nowrap;box-shadow:0 10px 24px rgba(15,26,58,.28);pointer-events:none;opacity:0;transition:opacity .15s}
+.numtip.show{opacity:1}
+.numtip b{display:block;font-weight:700}
+.numtip span{display:block;font-size:12px;opacity:.92}
 .numtip.mine{background:#0f2a63}
-.numtip i{position:absolute;bottom:-6px;width:12px;height:12px;margin-left:-6px;background:inherit;transform:rotate(45deg);border-radius:2px}
+.numtip i{position:absolute;bottom:-6px;left:50%;width:12px;height:12px;margin-left:-6px;background:inherit;transform:rotate(45deg);border-radius:2px}
+.numtip.below{bottom:auto;top:calc(100% + 11px)}
 .numtip.below i{bottom:auto;top:-6px}
+.numtip.al-l{left:-2px;transform:none}.numtip.al-l i{left:30px}
+.numtip.al-r{left:auto;right:-2px;transform:none}.numtip.al-r i{left:auto;right:24px}
+.num.x::after{z-index:1}
 @media (prefers-reduced-motion:reduce){.numtip{transition:none}}
+/* sin efecto rebote al deslizar (iPhone / Android) */
+html,body{overscroll-behavior:none;overscroll-behavior-y:none}
+.gridbox,.mlist,.sheet{overscroll-behavior:contain}
+/* notas */
+.notes-ta{width:100%;min-height:220px;padding:14px;border-radius:14px;border:1.5px solid var(--line);background:#fffdf6;color:var(--ink);line-height:25px;resize:vertical;font-family:'Inter',system-ui,sans-serif;font-size:16px;background-image:repeating-linear-gradient(transparent 0,transparent 24px,#efe9d6 24px,#efe9d6 25px);background-attachment:local;background-position:0 16px}
+.notes-ta:focus{outline:none;border-color:var(--green);background-color:#fff}
+.notes-meta{display:flex;justify-content:space-between;align-items:center;margin-top:8px;font-size:12px;color:var(--muted)}
+.notes-meta .ok{color:#11804a;font-weight:600;opacity:0;transition:opacity .2s}
+.notes-meta .ok.on{opacity:1}
 </style>
 </head>
 <body>
@@ -362,6 +376,7 @@ html.lock,html.lock body{overflow:hidden;overscroll-behavior:none}
   <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></symbol>
   <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></symbol>
   <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></symbol>
+  <symbol id="i-note" viewBox="0 0 24 24"><path d="M6 3h9l4 4v13a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5M8.5 12h7M8.5 16h5"/></symbol>
   <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
   <symbol id="i-down" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></symbol>
   <symbol id="i-trophy" viewBox="0 0 24 24"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0V4z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></symbol>
@@ -383,6 +398,7 @@ html.lock,html.lock body{overflow:hidden;overscroll-behavior:none}
       <div class="brand"><button type="button" class="iconbtn hidden" id="btnBack" aria-label="Volver a mis rifas" onclick="renderLista();window.scrollTo(0,0)"><svg class="ic"><use href="#i-back"/></svg></button><span class="logo">Presta<b>Ya</b></span><span class="tag">RIFAS</span></div>
       <div class="actions">
         <button class="iconbtn hidden" id="btnInstall" aria-label="Instalar app"><svg class="ic"><use href="#i-down"/></svg></button>
+        <button class="iconbtn" id="btnNotas" aria-label="Mis notas"><svg class="ic"><use href="#i-note"/></svg></button>
         <button class="iconbtn" id="btnMenu" aria-label="Ajustes"><svg class="ic"><use href="#i-gear"/></svg></button>
       </div>
     </div>
@@ -412,7 +428,7 @@ html.lock,html.lock body{overflow:hidden;overscroll-behavior:none}
 /* =========================================================
    RIFAS PRESTAYA  ·  v1.0
    ========================================================= */
-const VERSION = 'v3.8';
+const VERSION = 'v4.0';
 const DEFAULT_WA = '573162685282';
 const KEY = 'rifasPY_data_v1';
 const KEY_CFG = 'rifasPY_cfg_v1';
@@ -560,6 +576,29 @@ function renderLista(){
   }
   $('#vLista').innerHTML = caps + body + `<div class="foot">Rifas PrestaYa ${VERSION}</div>`;
 }
+/* ---------- Notas ---------- */
+function editorNotas(id, valor, fecha, ph, onSave){
+  const html = `<textarea id="${id}" class="notes-ta" placeholder="${ph}" maxlength="5000">${esc(valor || '')}</textarea>
+    <div class="notes-meta"><span id="${id}Info">${fecha ? 'Última edición: ' + new Date(fecha).toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' }) : 'Se guarda solo mientras escribes'}</span><span class="ok" id="${id}Ok">✓ Guardado</span></div>`;
+  const bind = () => {
+    const ta = document.getElementById(id); let tm;
+    ta.oninput = () => { clearTimeout(tm); tm = setTimeout(() => { onSave(ta.value);
+      const ok = document.getElementById(id + 'Ok'); if (ok){ ok.classList.add('on'); setTimeout(() => ok.classList.remove('on'), 1200); }
+      const inf = document.getElementById(id + 'Info'); if (inf) inf.textContent = 'Última edición: ' + new Date().toLocaleString('es-CO', { dateStyle: 'medium', timeStyle: 'short' }); }, 400); };
+    ta.onblur = () => { clearTimeout(tm); if (ta.value !== (valor || '')) onSave(ta.value); };
+  };
+  return [html, bind];
+}
+function renderNotas(r){
+  const [html, bind] = editorNotas('notasRifa', r.notas, r.notasF, 'Escribe aquí tus apuntes de esta rifa: pagos pendientes, acuerdos con clientes, recordatorios…', v => { r.notas = v; r.notasF = Date.now(); save(); });
+  $('#tabBody').innerHTML = `<div class="card"><h3 style="margin-bottom:4px">Notas de la rifa</h3><p class="muted" style="margin-bottom:12px">Solo tú las ves. No aparecen en el enlace ni en las boletas.</p>${html}</div>`;
+  bind();
+}
+function modalNotasGenerales(){
+  const [html, bind] = editorNotas('notasGen', DB.notas, DB.notasF, 'Apuntes generales: ideas para próximas rifas, premios, pendientes…', v => { DB.notas = v; DB.notasF = Date.now(); save(); });
+  modal(`<h2>📝 Mis notas</h2><p class="muted" style="margin-bottom:12px">Notas generales del panel. Cada rifa también tiene su propia pestaña <b>Notas</b>.</p>${html}`);
+  bind(); setTimeout(() => { const t = document.getElementById('notasGen'); if (t && !t.value) t.focus(); }, 250);
+}
 function abrirRifa(id){ UI.partAll = false; UI.rifaId = id; UI.tab = 'nums'; UI.filtro = 'todos'; UI.page = 0; UI.q = ''; renderDetalle(); window.scrollTo(0, 0); }
 
 function renderDetalle(){
@@ -599,10 +638,12 @@ function renderDetalle(){
       <button role="tab" class="${UI.tab === 'nums' ? 'on' : ''}" onclick="UI.tab='nums';renderDetalle()">Números</button>
       <button role="tab" class="${UI.tab === 'part' ? 'on' : ''}" onclick="UI.tab='part';renderDetalle()">Participantes</button>
       <button role="tab" class="${UI.tab === 'sorteo' ? 'on' : ''}" onclick="UI.tab='sorteo';renderDetalle()">Sorteo</button>
+      <button role="tab" class="${UI.tab === 'notas' ? 'on' : ''}" onclick="UI.tab='notas';renderDetalle()">Notas${r.notas ? ' •' : ''}</button>
     </div>
     <div id="tabBody"></div>`;
   if (UI.tab === 'nums') renderNums(r);
   else if (UI.tab === 'part') renderPart(r);
+  else if (UI.tab === 'notas') renderNotas(r);
   else renderSorteo(r);
 }
 
@@ -682,7 +723,7 @@ async function syncAdmin(r, rerender){
     if (nuevos.length){
       save(); if (navigator.vibrate) navigator.vibrate([60, 40, 60]);
       toast(`🔔 Nueva reserva: ${nuevos.join(', ')} · ${r.nums[nuevos[0]].n}`, 4000);
-      if (rerender && !$('#modalRoot .modal') && UI.rifaId === r.id) renderDetalle();
+      if (rerender && !$('#modalRoot .modal') && UI.rifaId === r.id && UI.tab !== 'notas') renderDetalle();
     }
     const l = $('#admLive'); if (l) l.textContent = '🟢 En vivo';
   }catch(e){ UI.live = false; const l = $('#admLive'); if (l) l.textContent = '🔴 Sin conexión'; }
@@ -1462,29 +1503,24 @@ function cSolo(on){
   $('#cBox').scrollTop = 0;
 }
 function shake(b){ b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); }
-/* Globito junto al número tocado: va DENTRO del panel de números (no depende del tamaño de la pantalla, funciona igual en iPhone) */
+/* Globito anclado al propio número tocado (CSS puro, sin cálculos de pantalla: funciona igual en iPhone) */
 let _tipT;
 function tipEn(b, html, tipo = 'no'){
-  const box = b.closest('.gridbox') || b.parentElement;
-  let t = box.querySelector('.numtip');
-  if (!t){ t = document.createElement('div'); t.className = 'numtip'; t.setAttribute('role', 'status'); box.appendChild(t);
-    box.addEventListener('scroll', ocultarTip, { passive: true }); }
-  t.className = 'numtip ' + tipo; t.innerHTML = html + '<i></i>';
-  t.style.left = '0px'; t.style.top = '0px';
-  // posición del número dentro del panel (incluye el desplazamiento del panel)
-  const br = b.getBoundingClientRect(), xr = box.getBoundingClientRect();
-  const bx = br.left - xr.left + box.scrollLeft, by = br.top - xr.top + box.scrollTop;
-  const tw = t.offsetWidth, th = t.offsetHeight, m = 4, bw = box.clientWidth;
-  let left = bx + br.width / 2 - tw / 2; left = Math.max(m, Math.min(bw - tw - m, left));
-  const abajo = (by - box.scrollTop) - th - 10 < 0;          // primera fila visible: va debajo
-  const top = abajo ? by + br.height + 10 : by - th - 10;
-  t.classList.toggle('below', abajo);
-  t.style.left = left + 'px'; t.style.top = top + 'px';
-  t.querySelector('i').style.left = Math.max(14, Math.min(tw - 14, bx + br.width / 2 - left)) + 'px';
-  void t.offsetWidth; t.classList.add('show');
+  ocultarTip();
+  const box = b.closest('.gridbox');
+  const cells = [...b.parentElement.children].filter(x => x.classList.contains('num') && x.offsetParent !== null);
+  const cols = Math.max(1, Math.round(b.parentElement.clientWidth / (b.offsetWidth + 6)));
+  const col = cells.indexOf(b) % cols;
+  const t = document.createElement('span');
+  t.className = 'numtip ' + tipo + (col === 0 ? ' al-l' : col === cols - 1 ? ' al-r' : '');
+  if (box && (b.offsetTop - box.scrollTop) < 78) t.classList.add('below');   // primera fila visible: debajo
+  t.setAttribute('role', 'status'); t.innerHTML = html + '<i></i>';
+  b.appendChild(t); b.classList.add('tipped');
+  requestAnimationFrame(() => t.classList.add('show'));
   clearTimeout(_tipT); _tipT = setTimeout(ocultarTip, 2400);
+  if (box && !box._tipScroll){ box._tipScroll = 1; box.addEventListener('scroll', ocultarTip, { passive: true }); }
 }
-function ocultarTip(){ document.querySelectorAll('.numtip.show').forEach(t => t.classList.remove('show')); }
+function ocultarTip(){ document.querySelectorAll('.numtip').forEach(t => { t.parentElement && t.parentElement.classList.remove('tipped'); t.remove(); }); }
 function cToggle(k, b){
   if (cMine().includes(k)){ shake(b); return tipEn(b, `<b>⭐ ${k}</b> ya es tuyo`, 'mine'); }
   if (cTaken(k)){
@@ -1597,6 +1633,7 @@ function route(){
 window.addEventListener('hashchange', () => { closeModal(); route(); });
 $('#fabNew').onclick = () => formRifa();
 $('#btnMenu').onclick = modalAjustes;
+$('#btnNotas').onclick = modalNotasGenerales;
 
 let deferredPrompt;
 window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); deferredPrompt = e; $('#btnInstall').classList.remove('hidden'); });
